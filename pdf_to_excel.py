@@ -1,12 +1,23 @@
 """PDF to Excel converter using pdfplumber and openpyxl."""
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
 import pdfplumber
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+# openpyxlが許可しない制御文字を除去するパターン（タブ、改行、復帰は許可）
+_ILLEGAL_CHARS_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]")
+
+
+def _sanitize(value: str | None) -> str:
+    """セル値からopenpyxlが拒否する制御文字を除去する。"""
+    if not value:
+        return ""
+    return _ILLEGAL_CHARS_RE.sub("", value)
 
 
 def extract_tables_from_pdf(pdf_path: str) -> list[dict]:
@@ -108,7 +119,7 @@ def _write_table(ws, table, header_font, header_fill, header_alignment, thin_bor
             cell = ws.cell(
                 row=start_row + row_idx,
                 column=col_idx + 1,
-                value=value if value else "",
+                value=_sanitize(value),
             )
             cell.border = thin_border
             cell.alignment = Alignment(vertical="center", wrap_text=True)
