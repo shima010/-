@@ -1,0 +1,200 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum Role {
+  admin
+  instructor
+  student
+}
+
+enum StudentStatus {
+  active
+  suspended
+  withdrawn
+}
+
+enum RewardType {
+  fixed
+  percentage
+}
+
+enum EmploymentType {
+  fulltime
+  parttime
+  contract
+}
+
+enum TicketCategory {
+  monthly
+  coupon
+}
+
+enum StudentTicketStatus {
+  active
+  consumed
+  expired
+  void
+}
+
+enum LessonType {
+  individual
+  group
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@map("users")
+}
+
+model Student {
+  id        Int           @id @default(autoincrement())
+  name      String
+  email     String        @unique
+  password  String
+  course    String?
+  status    StudentStatus @default(active)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  tickets       StudentTicket[]
+  lessonRecords LessonRecord[]
+
+  @@map("students")
+}
+
+model Instructor {
+  id             Int            @id @default(autoincrement())
+  name           String
+  email          String         @unique
+  password       String
+  rewardType     RewardType     @default(fixed)
+  employmentType EmploymentType @default(parttime)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  rewardSettings RewardSetting[]
+  lessonRecords  LessonRecord[]
+  rewardResults  RewardResult[]
+
+  @@map("instructors")
+}
+
+model RewardSetting {
+  id               Int        @id @default(autoincrement())
+  instructorId     Int
+  effectiveDate    DateTime
+  fixedRate        Float?
+  percentageRate   Float?
+  groupLessonRate  Float?
+  createdAt        DateTime   @default(now())
+
+  instructor Instructor @relation(fields: [instructorId], references: [id], onDelete: Cascade)
+
+  @@map("reward_settings")
+}
+
+model TicketType {
+  id           Int            @id @default(autoincrement())
+  name         String
+  price        Float
+  grantCount   Int
+  validityDays Int
+  category     TicketCategory @default(monthly)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  studentTickets StudentTicket[]
+
+  @@map("ticket_types")
+}
+
+model StudentTicket {
+  id             Int                 @id @default(autoincrement())
+  studentId      Int
+  ticketTypeId   Int
+  issuedAt       DateTime            @default(now())
+  expiresAt      DateTime
+  initialCount   Int
+  remainingCount Int
+  status         StudentTicketStatus @default(active)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  ticketType TicketType @relation(fields: [ticketTypeId], references: [id])
+
+  lessonRecords LessonRecord[]
+
+  @@map("student_tickets")
+}
+
+model LessonRecord {
+  id             Int        @id @default(autoincrement())
+  executedAt     DateTime
+  instructorId   Int
+  studentId      Int
+  ticketId       Int
+  lessonType     LessonType @default(individual)
+  groupSessionId String?
+  notes          String?
+  isConfirmed    Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  instructor Instructor    @relation(fields: [instructorId], references: [id])
+  student    Student       @relation(fields: [studentId], references: [id])
+  ticket     StudentTicket @relation(fields: [ticketId], references: [id])
+
+  @@map("lesson_records")
+}
+
+model RewardResult {
+  id              Int      @id @default(autoincrement())
+  targetYearMonth String   // Format: YYYY-MM
+  instructorId    Int
+  lessonCount     Int
+  totalSales      Float
+  rewardAmount    Float
+  confirmedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  instructor Instructor @relation(fields: [instructorId], references: [id])
+
+  @@unique([targetYearMonth, instructorId])
+  @@map("reward_results")
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int?
+  userRole     String?
+  action       String
+  targetEntity String
+  targetId     String?
+  oldValue     Json?
+  newValue     Json?
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
