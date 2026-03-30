@@ -1,0 +1,76 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build backend Docker image
+        run: |
+          docker build \
+            --target production \
+            -t music-school-backend:${{ github.sha }} \
+            -t music-school-backend:latest \
+            ./backend
+
+      - name: Build frontend Docker image
+        run: |
+          docker build \
+            --target production \
+            --build-arg VITE_API_URL=${{ secrets.VITE_API_URL }} \
+            -t music-school-frontend:${{ github.sha }} \
+            -t music-school-frontend:latest \
+            ./frontend
+
+      - name: Save Docker images
+        run: |
+          docker save music-school-backend:latest | gzip > backend.tar.gz
+          docker save music-school-frontend:latest | gzip > frontend.tar.gz
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            # Pull latest code
+            git pull origin main
+
+            # Run backup before deployment
+            ./scripts/backup.sh
+
+            # Rebuild and restart services
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --build
+
+            # Run migrations
+            docker compose -f docker-compose.prod.yml exec -T backend npx prisma migrate deploy
+
+            # Clean up old images
+            docker image prune -f
+
+            echo "Deployment completed successfully"
+
+      - name: Notify on success
+        if: success()
+        run: echo "Deployment to production successful for commit ${{ github.sha }}"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "Deployment failed for commit ${{ github.sha }}"
