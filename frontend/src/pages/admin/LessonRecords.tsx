@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { lessonsApi } from '../../api/client';
+import { 件Api } from '../../api/client';
 
 export default function AdminLessonRecords() {
   const [searchParams] = useSearchParams();
@@ -16,7 +16,7 @@ export default function AdminLessonRecords() {
   const { data, isLoading } = useQuery({
     queryKey: ['lessons', dateFrom, dateTo, studentId, instructorId],
     queryFn: () =>
-      lessonsApi.getAll({
+      件Api.getAll({
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         studentId: studentId ? parseInt(studentId) : undefined,
@@ -27,7 +27,7 @@ export default function AdminLessonRecords() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => lessonsApi.update(id, data),
+    mutationFn: ({ id, data }: { id: number; data: any }) => 件Api.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons'] });
       setEditingId(null);
@@ -35,7 +35,7 @@ export default function AdminLessonRecords() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => lessonsApi.delete(id),
+    mutationFn: (id: number) => 件Api.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessons'] }),
   });
 
@@ -49,20 +49,20 @@ export default function AdminLessonRecords() {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Delete this lesson record? Ticket count will be restored.')) {
+    if (window.confirm('このレッスン記録を削除しますか？チケットは返還されます。')) {
       deleteMutation.mutate(id);
     }
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Lesson Records</h1>
+      <h1 className="text-2xl font-bold text-gray-900">レッスン実績</h1>
 
       {/* Filters */}
       <div className="card">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="label">Date From</label>
+            <label className="label">開始日</label>
             <input
               type="date"
               className="input"
@@ -71,7 +71,7 @@ export default function AdminLessonRecords() {
             />
           </div>
           <div>
-            <label className="label">Date To</label>
+            <label className="label">終了日</label>
             <input
               type="date"
               className="input"
@@ -80,7 +80,7 @@ export default function AdminLessonRecords() {
             />
           </div>
           <div>
-            <label className="label">Student ID</label>
+            <label className="label">生徒ID</label>
             <input
               type="number"
               className="input"
@@ -90,7 +90,7 @@ export default function AdminLessonRecords() {
             />
           </div>
           <div>
-            <label className="label">Instructor ID</label>
+            <label className="label">講師ID</label>
             <input
               type="number"
               className="input"
@@ -127,14 +127,14 @@ export default function AdminLessonRecords() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Date</th>
-                  <th>Student</th>
-                  <th>Instructor</th>
-                  <th>Type</th>
-                  <th>Ticket</th>
-                  <th>Notes</th>
-                  <th>Status</th>
-                  <th>Actions</th>
+                  <th>日時</th>
+                  <th>生徒名</th>
+                  <th>講師名</th>
+                  <th>種別</th>
+                  <th>チケット</th>
+                  <th>メモ</th>
+                  <th>状態</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -170,9 +170,9 @@ export default function AdminLessonRecords() {
                     </td>
                     <td>
                       {lesson.isConfirmed ? (
-                        <span className="badge badge-green">Confirmed</span>
+                        <span className="badge badge-green">確定済み</span>
                       ) : (
-                        <span className="badge badge-yellow">Pending</span>
+                        <span className="badge badge-yellow">未確定</span>
                       )}
                     </td>
                     <td>
@@ -217,7 +217,7 @@ export default function AdminLessonRecords() {
                 {!data?.records.length && (
                   <tr>
                     <td colSpan={8} className="text-center py-8 text-gray-500">
-                      No lesson records found
+                      レッスン記録がありません
                     </td>
                   </tr>
                 )}

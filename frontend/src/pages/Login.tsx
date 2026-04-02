@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Login() {
@@ -9,7 +9,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -30,7 +29,7 @@ export default function Login() {
     try {
       await login(email, password);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'ログインに失敗しました。メールアドレスとパスワードを確認してください。');
     } finally {
       setIsLoading(false);
     }
@@ -39,14 +38,14 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 to-blue-700 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Logo */}
+        {/* ロゴ */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🎵</div>
-          <h1 className="text-2xl font-bold text-gray-900">Music School</h1>
-          <p className="text-gray-500 text-sm mt-1">Ticket Management System</p>
+          <h1 className="text-2xl font-bold text-gray-900">音楽教室</h1>
+          <p className="text-gray-500 text-sm mt-1">電子チケット管理システム</p>
         </div>
 
-        {/* Form */}
+        {/* フォーム */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
@@ -56,7 +55,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="email" className="label">
-              Email Address
+              メールアドレス
             </label>
             <input
               id="email"
@@ -72,7 +71,7 @@ export default function Login() {
 
           <div>
             <label htmlFor="password" className="label">
-              Password
+              パスワード
             </label>
             <input
               id="password"
@@ -97,19 +96,19 @@ export default function Login() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                Signing in...
+                ログイン中...
               </span>
             ) : (
-              'Sign In'
+              'ログイン'
             )}
           </button>
         </form>
 
         <div className="mt-6 p-4 bg-gray-50 rounded-lg text-xs text-gray-500">
-          <p className="font-medium mb-2">Demo credentials:</p>
-          <p>Admin: admin@musicschool.com / Admin@123456</p>
-          <p>Instructor: yamada@musicschool.com / Instructor@123</p>
-          <p>Student: sato@example.com / Student@123</p>
+          <p className="font-medium mb-2">デモ用アカウント：</p>
+          <p>管理者: admin@musicschool.com / Admin@123456</p>
+          <p>講師: yamada@musicschool.com / Instructor@123</p>
+          <p>生徒: sato@example.com / Student@123</p>
         </div>
       </div>
     </div>

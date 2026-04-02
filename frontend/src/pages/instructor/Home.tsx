@@ -14,14 +14,6 @@ export default function InstructorHome() {
   const [error, setError] = useState('');
   const queryClient = useQueryClient();
 
-  const { data: studentsData } = useQuery({
-    queryKey: ['instructor-students', user?.id],
-    queryFn: () => instructorsApi_getStudents(user!.id),
-    enabled: !!user?.id,
-    select: (r) => r.data,
-  });
-
-  // Simpler approach - get students through lesson history
   const { data: searchResults } = useQuery({
     queryKey: ['students', 'search', search],
     queryFn: () => studentsApi.getAll({ search: search || undefined, status: 'active', limit: 10 }),
@@ -39,7 +31,7 @@ export default function InstructorHome() {
   const consumeMutation = useMutation({
     mutationFn: (data: any) => lessonsApi.consume(data),
     onSuccess: () => {
-      setSuccess(`Lesson recorded for ${selectedStudent?.name}!`);
+      setSuccess(`${selectedStudent?.name} さんのレッスンを記録しました！`);
       setError('');
       setSelectedStudent(null);
       setSelectedTicketId(null);
@@ -48,7 +40,7 @@ export default function InstructorHome() {
       queryClient.invalidateQueries({ queryKey: ['activeTickets'] });
     },
     onError: (e: any) => {
-      setError(e.response?.data?.message || 'Failed to consume ticket');
+      setError(e.response?.data?.message || 'チケット消化に失敗しました');
       setSuccess('');
     },
   });
@@ -66,7 +58,6 @@ export default function InstructorHome() {
   };
 
   const now = new Date();
-  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   const { data: todayLessons } = useQuery({
     queryKey: ['lessons', 'today', user?.id],
@@ -86,8 +77,10 @@ export default function InstructorHome() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome, {user?.name}!</h1>
-        <p className="text-gray-500 text-sm">Record today's lessons</p>
+        <h1 className="text-2xl font-bold text-gray-900">{user?.name} さん、こんにちは</h1>
+        <p className="text-gray-500 text-sm">
+          {now.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+        </p>
       </div>
 
       {success && (
@@ -102,17 +95,17 @@ export default function InstructorHome() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick consume */}
+        {/* チケット消化登録 */}
         <div className="card">
-          <h2 className="font-semibold mb-4">Record Lesson</h2>
+          <h2 className="font-semibold mb-4">レッスン消化登録</h2>
 
-          {/* Student search */}
+          {/* 生徒検索 */}
           <div className="mb-4">
-            <label className="label">Search Student</label>
+            <label className="label">生徒を検索</label>
             <input
               type="text"
               className="input"
-              placeholder="Type student name..."
+              placeholder="氏名を入力..."
               value={selectedStudent ? selectedStudent.name : search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -147,21 +140,21 @@ export default function InstructorHome() {
               </div>
 
               <div>
-                <label className="label">Lesson Type</label>
+                <label className="label">レッスン形態</label>
                 <select
                   className="input"
                   value={lessonType}
                   onChange={(e) => setLessonType(e.target.value)}
                 >
-                  <option value="individual">Individual</option>
-                  <option value="group">Group</option>
+                  <option value="individual">個人レッスン</option>
+                  <option value="group">グループレッスン</option>
                 </select>
               </div>
 
               <div>
-                <label className="label">Select Ticket</label>
+                <label className="label">使用チケット</label>
                 {activeTickets?.length === 0 ? (
-                  <p className="text-red-500 text-sm">No active tickets for this student</p>
+                  <p className="text-red-500 text-sm">有効なチケットがありません</p>
                 ) : (
                   <div className="space-y-2">
                     {activeTickets?.map((ticket: any) => (
@@ -182,8 +175,8 @@ export default function InstructorHome() {
                         <div className="text-sm">
                           <p className="font-medium">{ticket.ticketType.name}</p>
                           <p className="text-gray-500">
-                            {ticket.remainingCount} remaining · Expires{' '}
-                            {new Date(ticket.expiresAt).toLocaleDateString()}
+                            残{ticket.remainingCount}回 · 有効期限{' '}
+                            {new Date(ticket.expiresAt).toLocaleDateString('ja-JP')}
                           </p>
                         </div>
                       </label>
@@ -193,13 +186,13 @@ export default function InstructorHome() {
               </div>
 
               <div>
-                <label className="label">Notes (optional)</label>
+                <label className="label">メモ（任意）</label>
                 <textarea
                   className="input"
                   rows={2}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Lesson notes..."
+                  placeholder="レッスン内容など..."
                 />
               </div>
 
@@ -209,7 +202,7 @@ export default function InstructorHome() {
                   disabled={!selectedTicketId || consumeMutation.isPending}
                   className="btn-primary flex-1"
                 >
-                  Record Lesson
+                  {consumeMutation.isPending ? '処理中...' : '消化登録'}
                 </button>
                 <button
                   type="button"
@@ -219,19 +212,19 @@ export default function InstructorHome() {
                   }}
                   className="btn-secondary"
                 >
-                  Cancel
+                  キャンセル
                 </button>
               </div>
             </form>
           )}
         </div>
 
-        {/* Today's lessons */}
+        {/* 本日のレッスン */}
         <div className="card">
           <h2 className="font-semibold mb-4">
-            Today's Lessons
+            本日のレッスン
             {todayLessons && (
-              <span className="ml-2 badge badge-blue">{todayLessons.total}</span>
+              <span className="ml-2 badge badge-blue">{todayLessons.total} 件</span>
             )}
           </h2>
           <div className="space-y-2">
@@ -240,7 +233,7 @@ export default function InstructorHome() {
                 <div className="flex-1">
                   <p className="font-medium text-sm">{lesson.student?.name}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(lesson.executedAt).toLocaleTimeString()} ·{' '}
+                    {new Date(lesson.executedAt).toLocaleTimeString('ja-JP')} ·{' '}
                     {lesson.ticket?.ticketType?.name}
                   </p>
                 </div>
@@ -249,22 +242,16 @@ export default function InstructorHome() {
                     lesson.lessonType === 'group' ? 'badge-blue' : 'badge-green'
                   }`}
                 >
-                  {lesson.lessonType}
+                  {lesson.lessonType === 'group' ? 'グループ' : '個人'}
                 </span>
               </div>
             ))}
             {!todayLessons?.records.length && (
-              <p className="text-center text-gray-500 py-6 text-sm">No lessons today yet</p>
+              <p className="text-center text-gray-500 py-6 text-sm">本日のレッスン記録はまだありません</p>
             )}
           </div>
         </div>
       </div>
     </div>
   );
-}
-
-// Helper - avoid circular import
-async function instructorsApi_getStudents(id: number) {
-  const { instructorsApi } = await import('../../api/client');
-  return instructorsApi.getStudents(id);
 }

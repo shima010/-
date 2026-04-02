@@ -15,7 +15,7 @@ const defaultForm: TicketTypeForm = {
   price: '',
   grantCount: '',
   validityDays: '30',
-  category: 'monthly',
+  category: '月謝',
 };
 
 export default function AdminTicketTypes() {
@@ -102,9 +102,9 @@ export default function AdminTicketTypes() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Ticket Types</h1>
+        <h1 className="text-2xl font-bold text-gray-900">チケット種別</h1>
         <button onClick={handleOpenCreate} className="btn-primary">
-          + Add Ticket Type
+          + チケット種別を追加
         </button>
       </div>
 
@@ -121,7 +121,7 @@ export default function AdminTicketTypes() {
                   <h3 className="font-semibold text-gray-900">{type.name}</h3>
                   <span
                     className={`badge mt-1 ${
-                      type.category === 'monthly' ? 'badge-blue' : 'badge-green'
+                      type.category === '月謝' ? 'badge-blue' : 'badge-green'
                     }`}
                   >
                     {type.category}
@@ -170,7 +170,7 @@ export default function AdminTicketTypes() {
           ))}
           {!types?.length && (
             <div className="col-span-3 text-center py-12 text-gray-500">
-              No ticket types yet. Create one!
+              チケット種別がありません yet. Create one!
             </div>
           )}
         </div>
@@ -181,7 +181,7 @@ export default function AdminTicketTypes() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold mb-4">
-              {editingId ? 'Edit Ticket Type' : 'Add Ticket Type'}
+              {editingId ? 'チケット種別を編集' : 'チケット種別を追加'}
             </h2>
             {error && (
               <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>
@@ -236,14 +236,14 @@ export default function AdminTicketTypes() {
                   />
                 </div>
                 <div>
-                  <label className="label">Category</label>
+                  <label className="label">区分</label>
                   <select
                     className="input"
                     value={form.category}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                   >
-                    <option value="monthly">Monthly</option>
-                    <option value="coupon">Coupon</option>
+                    <option value="月謝">Monthly</option>
+                    <option value="回数券">Coupon</option>
                   </select>
                 </div>
               </div>

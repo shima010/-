@@ -25,11 +25,11 @@ export default function AdminRewards() {
   const closeMutation = useMutation({
     mutationFn: () => rewardsApi.close(yearMonth),
     onSuccess: () => {
-      setCloseSuccess(`Month ${yearMonth} has been closed successfully!`);
+      setCloseSuccess(`${yearMonth} の月次確定が完了しました。`);
       setCloseError('');
     },
     onError: (e: any) => {
-      setCloseError(e.response?.data?.message || 'Failed to close month');
+      setCloseError(e.response?.data?.message || '月次確定に失敗しました');
       setCloseSuccess('');
     },
   });
@@ -37,7 +37,7 @@ export default function AdminRewards() {
   const handleClose = () => {
     if (
       window.confirm(
-        `Close month ${yearMonth}? This will lock all lesson records and confirm rewards. This cannot be undone.`,
+        `${yearMonth} を月次確定しますか？\nすべてのレッスン記録がロックされ、報酬額が確定します。この操作は取り消せません。`,
       )
     ) {
       closeMutation.mutate();
@@ -52,15 +52,15 @@ export default function AdminRewards() {
       if (type === 'monthly') {
         const res = await csvApi.monthlyLessons(yearMonth);
         blob = res.data;
-        filename = `monthly-lessons-${yearMonth}.csv`;
+        filename = `月次レッスン実績_${yearMonth}.csv`;
       } else if (type === 'issuance') {
         const res = await csvApi.ticketIssuance(yearMonth);
         blob = res.data;
-        filename = `ticket-issuance-${yearMonth}.csv`;
+        filename = `チケット発行台帳_${yearMonth}.csv`;
       } else {
         const res = await csvApi.ticketBalance();
         blob = res.data;
-        filename = `ticket-balance-${new Date().toISOString().split('T')[0]}.csv`;
+        filename = `チケット残高一覧_${new Date().toISOString().split('T')[0]}.csv`;
       }
 
       downloadCsv(blob, filename);
@@ -74,14 +74,14 @@ export default function AdminRewards() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Rewards</h1>
+        <h1 className="text-2xl font-bold text-gray-900">報酬管理</h1>
       </div>
 
-      {/* Month picker */}
+      {/* 対象月選択 */}
       <div className="card">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
           <div>
-            <label className="label">Target Month</label>
+            <label className="label">対象月</label>
             <input
               type="month"
               className="input"
@@ -98,7 +98,7 @@ export default function AdminRewards() {
             disabled={closeMutation.isPending || !!isAlreadyClosed}
             className={`btn-danger py-2 px-6 ${isAlreadyClosed ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isAlreadyClosed ? 'Already Closed' : 'Monthly Close'}
+            {isAlreadyClosed ? '✓ 確定済み' : '月次確定'}
           </button>
         </div>
 
@@ -110,14 +110,14 @@ export default function AdminRewards() {
         )}
       </div>
 
-      {/* Preview table */}
+      {/* 報酬プレビューテーブル */}
       <div className="card p-0">
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
           <h2 className="font-semibold text-gray-800">
-            {isAlreadyClosed ? '✓ Confirmed Results' : 'Preview'} — {yearMonth}
+            {isAlreadyClosed ? '✓ 確定済み報酬' : '計算プレビュー'} — {yearMonth}
           </h2>
           {isAlreadyClosed && (
-            <span className="badge badge-green">Closed</span>
+            <span className="badge badge-green">確定済み</span>
           )}
         </div>
         {previewLoading ? (
@@ -129,11 +129,11 @@ export default function AdminRewards() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Instructor</th>
-                  <th>Reward Type</th>
-                  <th className="text-right">Lessons</th>
-                  <th className="text-right">Total Sales</th>
-                  <th className="text-right">Reward Amount</th>
+                  <th>講師名</th>
+                  <th>計算方式</th>
+                  <th className="text-right">レッスン数</th>
+                  <th className="text-right">売上合計</th>
+                  <th className="text-right">支払報酬額</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -146,10 +146,10 @@ export default function AdminRewards() {
                           r.rewardType === 'fixed' ? 'badge-blue' : 'badge-green'
                         }`}
                       >
-                        {r.rewardType}
+                        {r.rewardType === 'fixed' ? '固定単価' : '歩合'}
                       </span>
                     </td>
-                    <td className="text-right">{r.lessonCount}</td>
+                    <td className="text-right">{r.lessonCount} 回</td>
                     <td className="text-right">
                       {r.totalSales > 0 ? `¥${r.totalSales.toLocaleString()}` : '—'}
                     </td>
@@ -161,15 +161,15 @@ export default function AdminRewards() {
                 {!preview?.results.length && (
                   <tr>
                     <td colSpan={5} className="text-center py-8 text-gray-500">
-                      No lesson records for this month
+                      この月のレッスン記録がありません
                     </td>
                   </tr>
                 )}
                 {preview?.results.length > 0 && (
                   <tr className="bg-gray-50 font-semibold">
-                    <td colSpan={2}>Total</td>
+                    <td colSpan={2}>合計</td>
                     <td className="text-right">
-                      {preview.results.reduce((s: number, r: any) => s + r.lessonCount, 0)}
+                      {preview.results.reduce((s: number, r: any) => s + r.lessonCount, 0)} 回
                     </td>
                     <td className="text-right">
                       ¥{preview.results
@@ -189,27 +189,27 @@ export default function AdminRewards() {
         )}
       </div>
 
-      {/* CSV Export */}
+      {/* CSV出力 */}
       <div className="card">
-        <h2 className="font-semibold mb-4">CSV Export</h2>
+        <h2 className="font-semibold mb-4">CSV出力（経理・給与計算用）</h2>
         <div className="flex flex-wrap gap-3">
           <button
             onClick={() => handleCsvDownload('monthly')}
             className="btn-secondary text-sm"
           >
-            📥 Monthly Lessons ({yearMonth})
+            📥 月次レッスン実績（{yearMonth}）
           </button>
           <button
             onClick={() => handleCsvDownload('issuance')}
             className="btn-secondary text-sm"
           >
-            📥 Ticket Issuance ({yearMonth})
+            📥 チケット発行台帳（{yearMonth}）
           </button>
           <button
             onClick={() => handleCsvDownload('balance')}
             className="btn-secondary text-sm"
           >
-            📥 Ticket Balance (Current)
+            📥 チケット残高一覧（現在）
           </button>
         </div>
       </div>

@@ -32,7 +32,7 @@ export default function AdminIssueTicket() {
     mutationFn: (data: any) => ticketsApi.issue(data),
     onSuccess: () => {
       setSuccess(
-        `Successfully issued ticket to ${selectedStudentIds.length} student(s)!`,
+        `チケットを発行しました： ${selectedStudentIds.length}名の生徒`,
       );
       setSelectedStudentIds([]);
       setSelectedTicketTypeId(null);
@@ -40,7 +40,7 @@ export default function AdminIssueTicket() {
       setError('');
     },
     onError: (e: any) => {
-      setError(e.response?.data?.message || 'Failed to issue ticket');
+      setError(e.response?.data?.message || 'チケット発行に失敗しました');
       setSuccess('');
     },
   });
@@ -56,7 +56,7 @@ export default function AdminIssueTicket() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedTicketTypeId || selectedStudentIds.length === 0) {
-      setError('Please select at least one student and a ticket type');
+      setError('生徒とチケット種別を選択してください');
       return;
     }
 
@@ -69,7 +69,7 @@ export default function AdminIssueTicket() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Issue Ticket</h1>
+      <h1 className="text-2xl font-bold text-gray-900">チケット発行</h1>
 
       {success && (
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
@@ -97,7 +97,7 @@ export default function AdminIssueTicket() {
             </h2>
             <input
               type="text"
-              placeholder="Search students..."
+              placeholder="生徒を検索..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input mb-3"
@@ -128,14 +128,14 @@ export default function AdminIssueTicket() {
                 </label>
               ))}
               {!studentsData?.students.length && (
-                <p className="text-center text-gray-500 py-4">No students found</p>
+                <p className="text-center text-gray-500 py-4">生徒が見つかりません</p>
               )}
             </div>
           </div>
 
           {/* Ticket type selection */}
           <div className="card">
-            <h2 className="font-semibold mb-4">Select Ticket Type</h2>
+            <h2 className="font-semibold mb-4">チケット種別を選択</h2>
             <div className="space-y-3">
               {ticketTypes?.map((type: any) => (
                 <label
@@ -182,7 +182,7 @@ export default function AdminIssueTicket() {
           <h2 className="font-semibold mb-4">Options</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="label">Issue Date (optional)</label>
+              <label className="label">発行日 (optional)</label>
               <input
                 type="date"
                 className="input"
@@ -227,7 +227,7 @@ export default function AdminIssueTicket() {
             }
             className="btn-primary px-8 py-2.5"
           >
-            {issueMutation.isPending ? 'Issuing...' : 'Issue Ticket(s)'}
+            {issueMutation.isPending ? 'Issuing...' : 'チケット発行(s)'}
           </button>
         </div>
       </form>

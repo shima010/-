@@ -14,8 +14,8 @@ const defaultForm: InstructorForm = {
   name: '',
   email: '',
   password: '',
-  rewardType: 'fixed',
-  employmentType: 'parttime',
+  rewardType: '固定単価',
+  employmentType: '非常勤',
 };
 
 export default function AdminInstructors() {
@@ -90,7 +90,7 @@ export default function AdminInstructors() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`Delete instructor "${name}"?`)) {
+    if (window.confirm(`講師「 "${name}"?`)) {
       deleteMutation.mutate(id);
     }
   };
@@ -100,7 +100,7 @@ export default function AdminInstructors() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Instructors</h1>
         <button onClick={handleOpenCreate} className="btn-primary">
-          + Add Instructor
+          + 講師を追加
         </button>
       </div>
 
@@ -119,7 +119,7 @@ export default function AdminInstructors() {
                 <tr>
                   <th>Name</th>
                   <th>Email</th>
-                  <th>Reward Type</th>
+                  <th>報酬計算方式</th>
                   <th>Employment</th>
                   <th>Lessons</th>
                   <th>Actions</th>
@@ -133,7 +133,7 @@ export default function AdminInstructors() {
                     <td>
                       <span
                         className={`badge ${
-                          instructor.rewardType === 'fixed' ? 'badge-blue' : 'badge-green'
+                          instructor.rewardType === '固定単価' ? 'badge-blue' : 'badge-green'
                         }`}
                       >
                         {instructor.rewardType}
@@ -166,7 +166,7 @@ export default function AdminInstructors() {
                 {!data?.instructors.length && (
                   <tr>
                     <td colSpan={6} className="text-center py-8 text-gray-500">
-                      No instructors found
+                      講師がいません found
                     </td>
                   </tr>
                 )}
@@ -178,10 +178,10 @@ export default function AdminInstructors() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="固定単価 inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <h2 className="text-lg font-bold mb-4">
-              {editingId ? 'Edit Instructor' : 'Add Instructor'}
+              {editingId ? '講師を編集' : '講師を追加'}
             </h2>
             {error && (
               <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>
@@ -218,14 +218,14 @@ export default function AdminInstructors() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="label">Reward Type</label>
+                  <label className="label">報酬計算方式</label>
                   <select
                     className="input"
                     value={form.rewardType}
                     onChange={(e) => setForm({ ...form, rewardType: e.target.value })}
                   >
-                    <option value="fixed">Fixed</option>
-                    <option value="percentage">Percentage</option>
+                    <option value="固定単価">Fixed</option>
+                    <option value="歩合">Percentage</option>
                   </select>
                 </div>
                 <div>
@@ -235,9 +235,9 @@ export default function AdminInstructors() {
                     value={form.employmentType}
                     onChange={(e) => setForm({ ...form, employmentType: e.target.value })}
                   >
-                    <option value="fulltime">Full Time</option>
-                    <option value="parttime">Part Time</option>
-                    <option value="contract">Contract</option>
+                    <option value="常勤">Full Time</option>
+                    <option value="非常勤">Part Time</option>
+                    <option value="契約">Contract</option>
                   </select>
                 </div>
               </div>

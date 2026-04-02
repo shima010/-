@@ -61,57 +61,57 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">{yearMonth} Overview</p>
+        <h1 className="text-2xl font-bold text-gray-900">ダッシュボード</h1>
+        <p className="text-gray-500 text-sm mt-1">{yearMonth} 月次概要</p>
       </div>
 
-      {/* Stats */}
+      {/* 統計カード */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title="Total Students"
+          title="登録生徒数（合計）"
           value={allStudents?.total ?? '—'}
           icon="👨‍🎓"
           color="border-blue-500"
         />
         <StatCard
-          title="Active Students"
+          title="在籍生徒数"
           value={studentsData?.total ?? '—'}
           icon="✅"
           color="border-green-500"
         />
         <StatCard
-          title="Lessons This Month"
+          title="今月のレッスン数"
           value={lessonsData?.total ?? '—'}
           icon="📝"
           color="border-purple-500"
         />
         <StatCard
-          title="Expiring Tickets (7d)"
+          title="期限切れ間近（7日以内）"
           value={expiringData?.length ?? '—'}
           icon="⚠️"
           color="border-yellow-500"
         />
       </div>
 
-      {/* Expiring tickets alert */}
+      {/* 期限切れ間近チケットアラート */}
       {expiringData && expiringData.length > 0 && (
         <div className="card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-800">
-              ⚠️ Expiring Tickets (Next 7 Days)
+              ⚠️ 期限切れ間近チケット（7日以内）
             </h2>
             <Link to="/admin/students" className="text-sm text-blue-600 hover:underline">
-              View All Students →
+              生徒一覧を見る →
             </Link>
           </div>
           <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Student</th>
-                  <th>Ticket Type</th>
-                  <th>Remaining</th>
-                  <th>Expires</th>
+                  <th>生徒名</th>
+                  <th>チケット種別</th>
+                  <th>残回数</th>
+                  <th>有効期限</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -133,14 +133,14 @@ export default function AdminDashboard() {
                       <td className="text-gray-600">{ticket.ticketType.name}</td>
                       <td>
                         <span className="badge badge-yellow">
-                          {ticket.remainingCount} remaining
+                          残{ticket.remainingCount}回
                         </span>
                       </td>
                       <td>
                         <span
                           className={`badge ${daysLeft <= 3 ? 'badge-red' : 'badge-yellow'}`}
                         >
-                          {daysLeft}d left
+                          あと{daysLeft}日
                         </span>
                       </td>
                     </tr>
@@ -152,13 +152,13 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* Quick links */}
+      {/* クイックリンク */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { to: '/admin/students', label: 'Manage Students', icon: '👥', color: 'bg-blue-50 hover:bg-blue-100 text-blue-700' },
-          { to: '/admin/issue-ticket', label: 'Issue Ticket', icon: '🎫', color: 'bg-green-50 hover:bg-green-100 text-green-700' },
-          { to: '/admin/lesson-records', label: 'Lesson Records', icon: '📋', color: 'bg-purple-50 hover:bg-purple-100 text-purple-700' },
-          { to: '/admin/rewards', label: 'Rewards', icon: '💰', color: 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700' },
+          { to: '/admin/students', label: '生徒管理', icon: '👥', color: 'bg-blue-50 hover:bg-blue-100 text-blue-700' },
+          { to: '/admin/issue-ticket', label: 'チケット発行', icon: '🎫', color: 'bg-green-50 hover:bg-green-100 text-green-700' },
+          { to: '/admin/lesson-records', label: 'レッスン実績', icon: '📋', color: 'bg-purple-50 hover:bg-purple-100 text-purple-700' },
+          { to: '/admin/rewards', label: '報酬管理', icon: '💰', color: 'bg-yellow-50 hover:bg-yellow-100 text-yellow-700' },
         ].map((link) => (
           <Link
             key={link.to}
