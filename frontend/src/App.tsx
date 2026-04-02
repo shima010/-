@@ -14,6 +14,7 @@ import AdminIssueTicket from './pages/admin/IssueTicket';
 import AdminLessonRecords from './pages/admin/LessonRecords';
 import AdminRewards from './pages/admin/Rewards';
 import AdminAuditLogs from './pages/admin/AuditLogs';
+import AdminImport from './pages/admin/Import';
 
 // Instructor pages
 import InstructorHome from './pages/instructor/Home';
@@ -50,6 +51,7 @@ function App() {
             <Route path="lesson-records" element={<AdminLessonRecords />} />
             <Route path="rewards" element={<AdminRewards />} />
             <Route path="audit-logs" element={<AdminAuditLogs />} />
+            <Route path="import" element={<AdminImport />} />
           </Route>
 
           {/* Instructor routes */}

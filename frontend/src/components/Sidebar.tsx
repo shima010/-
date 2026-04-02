@@ -16,6 +16,7 @@ const adminNav: NavItem[] = [
   { label: 'レッスン実績', path: '/admin/lesson-records', icon: '📝' },
   { label: '報酬管理', path: '/admin/rewards', icon: '💰' },
   { label: '監査ログ', path: '/admin/audit-logs', icon: '🔍' },
+  { label: 'データ移行', path: '/admin/import', icon: '📥' },
 ];
 
 const instructorNav: NavItem[] = [

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { 件Api } from '../../api/client';
+import { lessonsApi } from '../../api/client';
+
+const LESSON_TYPE_LABELS: Record<string, string> = { individual: '個人', group: 'グループ' };
 
 export default function AdminLessonRecords() {
   const [searchParams] = useSearchParams();
@@ -16,7 +18,7 @@ export default function AdminLessonRecords() {
   const { data, isLoading } = useQuery({
     queryKey: ['lessons', dateFrom, dateTo, studentId, instructorId],
     queryFn: () =>
-      件Api.getAll({
+      lessonsApi.getAll({
         dateFrom: dateFrom || undefined,
         dateTo: dateTo || undefined,
         studentId: studentId ? parseInt(studentId) : undefined,
@@ -27,7 +29,7 @@ export default function AdminLessonRecords() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => 件Api.update(id, data),
+    mutationFn: ({ id, data }: { id: number; data: any }) => lessonsApi.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['lessons'] });
       setEditingId(null);
@@ -35,7 +37,7 @@ export default function AdminLessonRecords() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => 件Api.delete(id),
+    mutationFn: (id: number) => lessonsApi.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['lessons'] }),
   });
 
@@ -86,7 +88,7 @@ export default function AdminLessonRecords() {
               className="input"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
-              placeholder="Filter by student ID"
+              placeholder="生徒IDで絞り込み"
             />
           </div>
           <div>
@@ -96,27 +98,22 @@ export default function AdminLessonRecords() {
               className="input"
               value={instructorId}
               onChange={(e) => setInstructorId(e.target.value)}
-              placeholder="Filter by instructor ID"
+              placeholder="講師IDで絞り込み"
             />
           </div>
         </div>
         <button
-          onClick={() => {
-            setDateFrom('');
-            setDateTo('');
-            setStudentId('');
-            setInstructorId('');
-          }}
+          onClick={() => { setDateFrom(''); setDateTo(''); setStudentId(''); setInstructorId(''); }}
           className="mt-3 text-sm text-gray-500 hover:text-gray-700"
         >
-          Clear Filters
+          フィルタをクリア
         </button>
       </div>
 
       {/* Table */}
       <div className="card p-0">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-800">{data?.total ?? 0} records</h2>
+          <h2 className="font-semibold text-gray-800">{data?.total ?? 0} 件</h2>
         </div>
         {isLoading ? (
           <div className="flex justify-center py-12">
@@ -140,7 +137,7 @@ export default function AdminLessonRecords() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {data?.records.map((lesson: any) => (
                   <tr key={lesson.id}>
-                    <td>{new Date(lesson.executedAt).toLocaleDateString()}</td>
+                    <td>{new Date(lesson.executedAt).toLocaleDateString('ja-JP')}</td>
                     <td className="font-medium">{lesson.student?.name}</td>
                     <td className="text-gray-600">{lesson.instructor?.name}</td>
                     <td>
@@ -149,7 +146,7 @@ export default function AdminLessonRecords() {
                           lesson.lessonType === 'group' ? 'badge-blue' : 'badge-green'
                         }`}
                       >
-                        {lesson.lessonType}
+                        {LESSON_TYPE_LABELS[lesson.lessonType] || lesson.lessonType}
                       </span>
                     </td>
                     <td className="text-sm text-gray-500">
@@ -184,13 +181,13 @@ export default function AdminLessonRecords() {
                                 onClick={() => handleSave(lesson.id)}
                                 className="text-green-600 hover:underline text-xs"
                               >
-                                Save
+                                保存
                               </button>
                               <button
                                 onClick={() => setEditingId(null)}
                                 className="text-gray-600 hover:underline text-xs"
                               >
-                                Cancel
+                                取消
                               </button>
                             </>
                           ) : (
@@ -199,13 +196,13 @@ export default function AdminLessonRecords() {
                                 onClick={() => handleEdit(lesson)}
                                 className="text-blue-600 hover:underline text-xs"
                               >
-                                Edit
+                                編集
                               </button>
                               <button
                                 onClick={() => handleDelete(lesson.id)}
                                 className="text-red-600 hover:underline text-xs"
                               >
-                                Delete
+                                削除
                               </button>
                             </>
                           )}

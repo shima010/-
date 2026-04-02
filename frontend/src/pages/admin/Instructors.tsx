@@ -2,21 +2,14 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { instructorsApi } from '../../api/client';
 
-interface InstructorForm {
-  name: string;
-  email: string;
-  password: string;
-  rewardType: string;
-  employmentType: string;
-}
+const REWARD_LABELS: Record<string, string> = { fixed: '固定単価', percentage: '歩合' };
+const EMPLOYMENT_LABELS: Record<string, string> = { fulltime: '常勤', parttime: '非常勤', contract: '契約' };
 
-const defaultForm: InstructorForm = {
-  name: '',
-  email: '',
-  password: '',
-  rewardType: '固定単価',
-  employmentType: '非常勤',
-};
+interface InstructorForm {
+  name: string; email: string; password: string;
+  rewardType: string; employmentType: string;
+}
+const defaultForm: InstructorForm = { name: '', email: '', password: '', rewardType: 'fixed', employmentType: 'parttime' };
 
 export default function AdminInstructors() {
   const [showModal, setShowModal] = useState(false);
@@ -33,23 +26,14 @@ export default function AdminInstructors() {
 
   const createMutation = useMutation({
     mutationFn: (data: any) => instructorsApi.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['instructors'] });
-      setShowModal(false);
-      setForm(defaultForm);
-    },
-    onError: (e: any) => setError(e.response?.data?.message || 'Error'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['instructors'] }); setShowModal(false); setForm(defaultForm); },
+    onError: (e: any) => setError(e.response?.data?.message || 'エラーが発生しました'),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => instructorsApi.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['instructors'] });
-      setShowModal(false);
-      setEditingId(null);
-      setForm(defaultForm);
-    },
-    onError: (e: any) => setError(e.response?.data?.message || 'Error'),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['instructors'] }); setShowModal(false); setEditingId(null); setForm(defaultForm); },
+    onError: (e: any) => setError(e.response?.data?.message || 'エラーが発生しました'),
   });
 
   const deleteMutation = useMutation({
@@ -57,72 +41,37 @@ export default function AdminInstructors() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['instructors'] }),
   });
 
-  const handleOpenCreate = () => {
-    setForm(defaultForm);
-    setEditingId(null);
-    setError('');
-    setShowModal(true);
-  };
-
   const handleOpenEdit = (instructor: any) => {
-    setForm({
-      name: instructor.name,
-      email: instructor.email,
-      password: '',
-      rewardType: instructor.rewardType,
-      employmentType: instructor.employmentType,
-    });
-    setEditingId(instructor.id);
-    setError('');
-    setShowModal(true);
+    setForm({ name: instructor.name, email: instructor.email, password: '', rewardType: instructor.rewardType, employmentType: instructor.employmentType });
+    setEditingId(instructor.id); setError(''); setShowModal(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const data = { ...form };
     if (!data.password) delete (data as any).password;
-
-    if (editingId) {
-      updateMutation.mutate({ id: editingId, data });
-    } else {
-      createMutation.mutate(data);
-    }
-  };
-
-  const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`講師「 "${name}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    if (editingId) { updateMutation.mutate({ id: editingId, data }); } else { createMutation.mutate(data); }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Instructors</h1>
-        <button onClick={handleOpenCreate} className="btn-primary">
-          + 講師を追加
-        </button>
+        <h1 className="text-2xl font-bold text-gray-900">講師管理</h1>
+        <button onClick={() => { setForm(defaultForm); setEditingId(null); setError(''); setShowModal(true); }} className="btn-primary">+ 講師を追加</button>
       </div>
 
       <div className="card p-0">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="font-semibold text-gray-800">{data?.total ?? 0} instructors</h2>
+          <h2 className="font-semibold text-gray-800">{data?.total ?? 0} 名</h2>
         </div>
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
-          </div>
+          <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" /></div>
         ) : (
           <div className="table-container rounded-none border-0">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>報酬計算方式</th>
-                  <th>Employment</th>
-                  <th>Lessons</th>
-                  <th>Actions</th>
+                  <th>氏名</th><th>メール</th><th>報酬計算方式</th><th>雇用形態</th><th>担当レッスン</th><th>操作</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -131,44 +80,22 @@ export default function AdminInstructors() {
                     <td className="font-medium">{instructor.name}</td>
                     <td className="text-gray-600">{instructor.email}</td>
                     <td>
-                      <span
-                        className={`badge ${
-                          instructor.rewardType === '固定単価' ? 'badge-blue' : 'badge-green'
-                        }`}
-                      >
-                        {instructor.rewardType}
+                      <span className={`badge ${instructor.rewardType === 'fixed' ? 'badge-blue' : 'badge-green'}`}>
+                        {REWARD_LABELS[instructor.rewardType] || instructor.rewardType}
                       </span>
                     </td>
-                    <td className="text-gray-600">{instructor.employmentType}</td>
-                    <td className="text-center">
-                      <span className="badge badge-gray">
-                        {instructor._count?.lessonRecords ?? 0}
-                      </span>
-                    </td>
+                    <td className="text-gray-600">{EMPLOYMENT_LABELS[instructor.employmentType] || instructor.employmentType}</td>
+                    <td className="text-center"><span className="badge badge-gray">{instructor._count?.lessonRecords ?? 0} 件</span></td>
                     <td>
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => handleOpenEdit(instructor)}
-                          className="text-blue-600 hover:underline text-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(instructor.id, instructor.name)}
-                          className="text-red-600 hover:underline text-sm"
-                        >
-                          Delete
-                        </button>
+                        <button onClick={() => handleOpenEdit(instructor)} className="text-blue-600 hover:underline text-sm">編集</button>
+                        <button onClick={() => { if (window.confirm(`講師「${instructor.name}」を削除しますか？`)) deleteMutation.mutate(instructor.id); }} className="text-red-600 hover:underline text-sm">削除</button>
                       </div>
                     </td>
                   </tr>
                 ))}
                 {!data?.instructors.length && (
-                  <tr>
-                    <td colSpan={6} className="text-center py-8 text-gray-500">
-                      講師がいません found
-                    </td>
-                  </tr>
+                  <tr><td colSpan={6} className="text-center py-8 text-gray-500">講師が登録されていません</td></tr>
                 )}
               </tbody>
             </table>
@@ -176,82 +103,46 @@ export default function AdminInstructors() {
         )}
       </div>
 
-      {/* Modal */}
       {showModal && (
-        <div className="固定単価 inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h2 className="text-lg font-bold mb-4">
-              {editingId ? '講師を編集' : '講師を追加'}
-            </h2>
-            {error && (
-              <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>
-            )}
+            <h2 className="text-lg font-bold mb-4">{editingId ? '講師情報を編集' : '講師を新規追加'}</h2>
+            {error && <div className="bg-red-50 text-red-700 text-sm p-3 rounded mb-4">{error}</div>}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="label">Name *</label>
-                <input
-                  className="input"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
+                <label className="label">氏名 *</label>
+                <input className="input" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="山田 花子" />
               </div>
               <div>
-                <label className="label">Email *</label>
-                <input
-                  className="input"
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
+                <label className="label">メールアドレス *</label>
+                <input className="input" type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
               <div>
-                <label className="label">{editingId ? 'Password (leave blank to keep)' : 'Password *'}</label>
-                <input
-                  className="input"
-                  type="password"
-                  required={!editingId}
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                />
+                <label className="label">{editingId ? 'パスワード（変更する場合のみ）' : 'パスワード *'}</label>
+                <input className="input" type="password" required={!editingId} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label">報酬計算方式</label>
-                  <select
-                    className="input"
-                    value={form.rewardType}
-                    onChange={(e) => setForm({ ...form, rewardType: e.target.value })}
-                  >
-                    <option value="固定単価">Fixed</option>
-                    <option value="歩合">Percentage</option>
+                  <select className="input" value={form.rewardType} onChange={(e) => setForm({ ...form, rewardType: e.target.value })}>
+                    <option value="fixed">固定単価</option>
+                    <option value="percentage">歩合</option>
                   </select>
                 </div>
                 <div>
-                  <label className="label">Employment</label>
-                  <select
-                    className="input"
-                    value={form.employmentType}
-                    onChange={(e) => setForm({ ...form, employmentType: e.target.value })}
-                  >
-                    <option value="常勤">Full Time</option>
-                    <option value="非常勤">Part Time</option>
-                    <option value="契約">Contract</option>
+                  <label className="label">雇用形態</label>
+                  <select className="input" value={form.employmentType} onChange={(e) => setForm({ ...form, employmentType: e.target.value })}>
+                    <option value="fulltime">常勤</option>
+                    <option value="parttime">非常勤</option>
+                    <option value="contract">契約</option>
                   </select>
                 </div>
               </div>
               <div className="flex gap-3 pt-2">
-                <button type="submit" className="btn-primary flex-1">
-                  {editingId ? 'Update' : 'Create'}
+                <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="btn-primary flex-1">
+                  {editingId ? '更新する' : '追加する'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">キャンセル</button>
               </div>
             </form>
           </div>
