@@ -142,3 +142,22 @@ export const downloadCsv = (blob: Blob, filename: string) => {
   window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 };
+
+export const auditApi = {
+  getLogs: (params?: { targetEntity?: string; action?: string; limit?: number; offset?: number }) =>
+    apiClient.get('/audit/logs', { params }),
+  downloadCsv: (params?: { targetEntity?: string; action?: string }) =>
+    apiClient.get('/audit/logs/csv', { params, responseType: 'blob' }),
+};
+
+export const importApi = {
+  importStudentsText: (csv: string) =>
+    apiClient.post('/import/students/text', { csv }),
+  importStudentsFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return apiClient.post('/import/students', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+};

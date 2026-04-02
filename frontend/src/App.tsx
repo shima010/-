@@ -13,6 +13,7 @@ import AdminTicketTypes from './pages/admin/TicketTypes';
 import AdminIssueTicket from './pages/admin/IssueTicket';
 import AdminLessonRecords from './pages/admin/LessonRecords';
 import AdminRewards from './pages/admin/Rewards';
+import AdminAuditLogs from './pages/admin/AuditLogs';
 
 // Instructor pages
 import InstructorHome from './pages/instructor/Home';
@@ -48,6 +49,7 @@ function App() {
             <Route path="issue-ticket" element={<AdminIssueTicket />} />
             <Route path="lesson-records" element={<AdminLessonRecords />} />
             <Route path="rewards" element={<AdminRewards />} />
+            <Route path="audit-logs" element={<AdminAuditLogs />} />
           </Route>
 
           {/* Instructor routes */}
