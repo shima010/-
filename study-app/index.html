@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>行政書士 学習アプリ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <h1 class="app-title">⚖️ 行政書士 学習アプリ</h1>
+      <nav class="tab-nav" role="tablist" aria-label="メインメニュー">
+        <button class="tab-btn active" data-tab="quiz" role="tab" aria-selected="true" aria-controls="tab-quiz">
+          📝 問題練習
+        </button>
+        <button class="tab-btn" data-tab="notes" role="tab" aria-selected="false" aria-controls="tab-notes">
+          📖 まとめノート
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="app-main">
+
+    <!-- ========= QUIZ TAB ========= -->
+    <section id="tab-quiz" class="tab-panel active" role="tabpanel">
+
+      <!-- 科目選択画面 -->
+      <div id="quiz-subject-select" class="screen active">
+        <h2 class="screen-title">科目を選択して練習する</h2>
+
+        <button id="btn-all-subjects" class="btn-all-subjects">🎯 全科目ランダム（50問）</button>
+
+        <div id="subject-grid" class="subject-grid" role="list" aria-label="科目一覧"></div>
+
+        <div id="overall-stats" class="overall-stats" style="margin-top:1.5rem;display:none;">
+          <div class="stat-item">
+            <div class="stat-num" id="stat-total">0</div>
+            <div class="stat-label">総解答数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-correct">0</div>
+            <div class="stat-label">正解数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-num" id="stat-rate">-</div>
+            <div class="stat-label">正答率</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 問題練習画面 -->
+      <div id="quiz-screen" class="screen">
+        <div class="quiz-header">
+          <button id="quiz-back-btn" class="btn-back">← 戻る</button>
+          <span id="quiz-subject-badge" class="subject-badge"></span>
+          <span id="quiz-progress" class="progress-text"></span>
+        </div>
+        <div class="progress-bar-wrap">
+          <div id="progress-bar" class="progress-bar" style="width:0%"></div>
+        </div>
+
+        <div class="question-card" id="question-card">
+          <div class="question-meta">
+            <span id="question-number" class="question-number"></span>
+            <span id="question-category" class="question-category"></span>
+          </div>
+          <p id="question-text" class="question-text"></p>
+          <div id="choices" class="choices-list" role="group" aria-label="選択肢"></div>
+        </div>
+
+        <div id="feedback-panel" class="feedback-panel hidden">
+          <div id="feedback-result" class="feedback-result"></div>
+          <p id="correct-answer-note" class="correct-answer-note" style="display:none;"></p>
+          <div id="explanation" class="explanation"></div>
+          <div class="feedback-actions">
+            <button id="next-btn" class="btn-primary">次の問題へ →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 結果画面 -->
+      <div id="quiz-result" class="screen">
+        <div class="result-card">
+          <h2 class="result-title">🎉 結果</h2>
+          <div class="score-circle">
+            <span id="result-percent" class="score-percent">--</span>
+            <span class="score-label">正答率</span>
+          </div>
+          <p id="result-comment" class="result-comment"></p>
+          <p id="result-detail" class="result-detail"></p>
+          <div class="result-actions">
+            <button id="retry-btn" class="btn-primary">もう一度</button>
+            <button id="result-back-btn" class="btn-secondary">科目選択へ</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ========= NOTES TAB ========= -->
+    <section id="tab-notes" class="tab-panel" role="tabpanel">
+      <div class="notes-layout">
+        <!-- 左サイドバー -->
+        <aside class="notes-sidebar">
+          <p class="sidebar-title">科目</p>
+          <ul id="notes-subject-list" class="notes-subject-list" role="list"></ul>
+        </aside>
+
+        <!-- ノート本文 -->
+        <div class="notes-content" id="notes-content">
+          <div class="notes-welcome">
+            <p>👈 左の科目を選択してください</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="data/questions.js"></script>
+  <script src="data/notes-data.js"></script>
+  <script src="js/notes.js"></script>
+  <script src="js/quiz.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
