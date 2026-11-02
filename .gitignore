@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 *.pyo
+
+# 分析の入力データと出力(財務データをリポジトリに含めないため)
+data/
+output/
+.pytest_cache/
