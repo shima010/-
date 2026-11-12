@@ -1,0 +1,1704 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>店舗別PL 3期対比分析</title>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+<script crossorigin src="https://unpkg.com/recharts@2/umd/Recharts.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+  :root{
+    --bg:#f4f3ef;
+    --panel:#ffffff;
+    --panel-2:#faf9f6;
+    --ink:#232a33;
+    --ink-soft:#5c6672;
+    --ink-faint:#8a93a0;
+    --border:#dedad2;
+    --border-strong:#c7c2b8;
+    --navy:#2c3a54;
+    --navy-dark:#1b2540;
+    --navy-soft:#e7eaf1;
+    --teal:#3f7a72;
+    --teal-soft:#e4efec;
+    --amber:#96690f;
+    --amber-bg:#fbf1dd;
+    --amber-border:#e8c988;
+    --red:#a8382a;
+    --red-bg:#faeae6;
+    --red-border:#e6b3a6;
+    --shadow: 0 1px 2px rgba(30,30,20,.06), 0 4px 14px rgba(30,30,20,.06);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+    font-size:16px;
+    line-height:1.6;
+  }
+  #root{max-width:1400px; margin:0 auto; padding:28px 32px 80px;}
+  h1,h2,h3,h4{font-weight:700; color:var(--navy-dark); margin:0 0 6px;}
+  h1{font-size:26px;}
+  h2{font-size:20px; margin-top:0;}
+  h3{font-size:17px;}
+  p{margin:6px 0;}
+  button{
+    font-family:inherit; font-size:15px; cursor:pointer;
+    border-radius:8px; border:1px solid var(--border-strong);
+    background:var(--panel); color:var(--ink); padding:10px 18px;
+    transition: background .12s, border-color .12s;
+  }
+  button:hover:not(:disabled){background:var(--navy-soft); border-color:var(--navy);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  button.primary{background:var(--navy); color:#fff; border-color:var(--navy);}
+  button.primary:hover:not(:disabled){background:var(--navy-dark);}
+  button.ghost{background:transparent; border-color:transparent; color:var(--ink-soft); padding:6px 10px;}
+  button.danger{color:var(--red); border-color:var(--red-border);}
+  button.small{padding:6px 12px; font-size:13px;}
+  input[type=text], input[type=number]{
+    font-family:inherit; font-size:14px; padding:6px 8px;
+    border:1px solid var(--border-strong); border-radius:6px; width:100%;
+    background:#fff; color:var(--ink);
+  }
+  input[type=number]{text-align:right;}
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 26px; margin-bottom:22px;}
+  .row{display:flex; gap:14px; flex-wrap:wrap; align-items:center;}
+  .muted{color:var(--ink-soft);}
+  .faint{color:var(--ink-faint); font-size:13px;}
+  .tag{display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid var(--border-strong);}
+  .tag.red{background:var(--red-bg); color:var(--red); border-color:var(--red-border);}
+  .tag.amber{background:var(--amber-bg); color:var(--amber); border-color:var(--amber-border);}
+  .tag.teal{background:var(--teal-soft); color:var(--teal); border-color:#bcd7cf;}
+  .tag.navy{background:var(--navy-soft); color:var(--navy); border-color:#c4cde0;}
+
+  /* stepper */
+  .stepper{display:flex; gap:0; margin-bottom:26px;}
+  .step{flex:1; text-align:center; padding:10px 6px; border-bottom:3px solid var(--border); color:var(--ink-faint); font-size:13px; font-weight:600;}
+  .step.active{border-color:var(--navy); color:var(--navy-dark);}
+  .step.done{border-color:var(--teal); color:var(--teal);}
+
+  /* input stage */
+  .dropzone{
+    border:2px dashed var(--border-strong); border-radius:var(--radius);
+    padding:48px 20px; text-align:center; background:var(--panel-2); color:var(--ink-soft);
+    transition:border-color .12s, background .12s;
+  }
+  .dropzone.drag{border-color:var(--navy); background:var(--navy-soft);}
+  .thumbs{display:flex; flex-wrap:wrap; gap:14px; margin-top:18px;}
+  .thumb{position:relative; width:130px;}
+  .thumb img{width:130px; height:96px; object-fit:cover; border-radius:8px; border:1px solid var(--border-strong); display:block;}
+  .thumb .del{position:absolute; top:-8px; right:-8px; background:var(--red); color:#fff; border:none; border-radius:50%; width:24px; height:24px; line-height:1; font-size:14px; padding:0;}
+  .thumb .name{font-size:11px; color:var(--ink-faint); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+  /* skeleton */
+  .skel{background:linear-gradient(90deg, #eceae4 25%, #f5f3ee 37%, #eceae4 63%); background-size:400% 100%; animation:skel 1.4s ease infinite; border-radius:6px;}
+  @keyframes skel{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+  .progress-bar{height:8px; border-radius:5px; background:var(--border); overflow:hidden;}
+  .progress-bar > div{height:100%; background:var(--navy); transition:width .3s;}
+
+  /* tables */
+  table{border-collapse:collapse; width:100%; font-size:14px;}
+  th,td{border:1px solid var(--border); padding:7px 10px; text-align:right;}
+  th{background:var(--panel-2); color:var(--ink-soft); font-weight:600; text-align:center; white-space:nowrap;}
+  td.label-col, th.label-col{text-align:left; white-space:nowrap; background:var(--panel-2); font-weight:600;}
+  td.cell-null{background:var(--red-bg);}
+  td.cell-warn{background:var(--amber-bg);}
+  .table-wrap{overflow-x:auto;}
+  .store-block{border-top:1px solid var(--border); padding-top:20px; margin-top:20px;}
+  .store-block:first-child{border-top:none; margin-top:0; padding-top:0;}
+  .issue-line{font-size:13px; margin:2px 0; padding:2px 0;}
+  .issue-line.blocking{color:var(--red); font-weight:600;}
+  .issue-line.warning{color:var(--amber);}
+
+  .metric-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:14px; margin:16px 0;}
+  .metric-card{background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:12px 14px;}
+  .metric-card .v{font-size:22px; font-weight:700; color:var(--navy-dark);}
+  .metric-card .l{font-size:12px; color:var(--ink-soft);}
+  .metric-card .d{font-size:12px; margin-top:4px;}
+  .metric-card .d.pos{color:var(--teal);}
+  .metric-card .d.neg{color:var(--red);}
+
+  .chart-box{width:100%; height:340px;}
+  .chart-box.small{height:300px;}
+
+  select{font-family:inherit; font-size:14px; padding:7px 10px; border-radius:6px; border:1px solid var(--border-strong); background:#fff;}
+
+  .action-item{border:1px solid var(--border); border-radius:8px; padding:12px 14px; margin-bottom:10px; background:var(--panel-2);}
+  .action-item .meta{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:12px;}
+
+  .trend-badge{display:inline-block; padding:4px 12px; border-radius:6px; font-weight:700; font-size:13px;}
+  .trend-growth{background:var(--teal-soft); color:var(--teal);}
+  .trend-plateau{background:var(--navy-soft); color:var(--navy);}
+  .trend-deficit{background:var(--red-bg); color:var(--red);}
+  .trend-onetime{background:var(--amber-bg); color:var(--amber);}
+
+  .print-only{display:none;}
+  .banner{border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:14px;}
+  .banner.error{background:var(--red-bg); border:1px solid var(--red-border); color:var(--red);}
+  .banner.info{background:var(--navy-soft); border:1px solid #c4cde0; color:var(--navy-dark);}
+  .banner.warn{background:var(--amber-bg); border:1px solid var(--amber-border); color:var(--amber);}
+
+  @media print{
+    body{background:#fff;}
+    #root{max-width:none; padding:0;}
+    .screen-only, .no-print{display:none !important;}
+    .print-only{display:block !important;}
+    .store-page{page-break-after:always; padding:14mm;}
+    .store-page:last-child{page-break-after:auto;}
+    @page{size: A4 landscape; margin:10mm;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/plain" id="app-source">
+const { useState, useEffect, useMemo, useCallback, useRef } = React;
+const {
+  ResponsiveContainer, ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ScatterChart, Scatter, ZAxis, ReferenceLine, BarChart, Cell
+} = Recharts;
+
+/* ============================== 定数 ============================== */
+
+const MODEL = "claude-sonnet-4-6";
+const STORAGE_KEY = "shimamura_store_pl_v1";
+const MAX_IMAGES = 10;
+
+const NUMERIC_FIELDS = [
+  "sales_total","sales_product","sales_school","sales_repair","sales_other",
+  "cogs","gross_profit",
+  "sga_personnel","sga_rent","sga_utilities","sga_depreciation","sga_promotion","sga_other","sga_total",
+  "operating_profit","school_students","floor_tsubo"
+];
+const REQUIRED_FIELDS = ["sales_total","cogs","gross_profit","sga_total","operating_profit"];
+
+const FIELD_LABELS = {
+  sales_total: "売上高合計",
+  sales_product: "商品売上",
+  sales_school: "音楽教室売上",
+  sales_repair: "修理・リペア売上",
+  sales_other: "その他売上(レンタル・保険等)",
+  cogs: "売上原価",
+  gross_profit: "売上総利益",
+  sga_personnel: "人件費",
+  sga_rent: "地代家賃・共益費",
+  sga_utilities: "水道光熱費",
+  sga_depreciation: "減価償却費",
+  sga_promotion: "販促費",
+  sga_other: "その他販管費",
+  sga_total: "販管費計",
+  operating_profit: "店舗営業利益",
+  school_students: "生徒数",
+  floor_tsubo: "坪数"
+};
+const FIELD_ORDER = [
+  "sales_total","sales_product","sales_school","sales_repair","sales_other",
+  "cogs","gross_profit",
+  "sga_personnel","sga_rent","sga_utilities","sga_depreciation","sga_promotion","sga_other","sga_total",
+  "operating_profit","school_students","floor_tsubo"
+];
+
+const TREND_LABELS = {
+  growth: "① 成長",
+  plateau: "② 踊り場",
+  structural_deficit: "③ 構造赤字",
+  one_time: "④ 一時要因"
+};
+const TREND_CLASS = {
+  growth: "trend-growth", plateau: "trend-plateau",
+  structural_deficit: "trend-deficit", one_time: "trend-onetime"
+};
+
+const CHART_COLORS = { sales:"#2c3a54", gross:"#6f8faf", op:"#3f7a72", pos:"#3f7a72", neg:"#a8382a", total:"#2c3a54" };
+
+/* ============================== ユーティリティ ============================== */
+
+function uid(){ return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function isNum(v){ return typeof v === "number" && isFinite(v); }
+
+function fmtNum(v, digits){
+  if (digits === undefined) digits = 0;
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  return new Intl.NumberFormat("ja-JP", { maximumFractionDigits: digits, minimumFractionDigits: digits }).format(v);
+}
+function fmtPct(v, digits){
+  if (digits === undefined) digits = 1;
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  return (v * 100).toFixed(digits) + "%";
+}
+function fmtPP(v, digits){ // percentage point diff, signed
+  if (digits === undefined) digits = 1;
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const s = v >= 0 ? "+" : "";
+  return s + (v * 100).toFixed(digits) + "pt";
+}
+function fmtSignedNum(v){
+  if (v === null || v === undefined || !isFinite(v)) return "—";
+  const s = v >= 0 ? "+" : "";
+  return s + fmtNum(v);
+}
+function safeDiv(a, b){
+  if (!isNum(a) || !isNum(b) || b === 0) return null;
+  return a / b;
+}
+function median(arr){
+  const xs = arr.filter(isNum).slice().sort((a,b)=>a-b);
+  if (!xs.length) return null;
+  const mid = Math.floor(xs.length/2);
+  return xs.length % 2 ? xs[mid] : (xs[mid-1]+xs[mid])/2;
+}
+function periodNum(label){
+  const m = String(label||"").match(/\d+/);
+  return m ? parseInt(m[0],10) : null;
+}
+function sortPeriods(periods){
+  const withIdx = periods.map((p,i)=>({p,i}));
+  withIdx.sort((a,b)=>{
+    const na = periodNum(a.p.label), nb = periodNum(b.p.label);
+    if (na !== null && nb !== null && na !== nb) return na - nb;
+    return a.i - b.i;
+  });
+  return withIdx.map(x=>x.p);
+}
+function chunk(arr, size){
+  const out = [];
+  for (let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
+  return out;
+}
+function tolFor(unit){
+  if (unit === "百万円") return 0.1;
+  return 1;
+}
+
+/* ---- window.storage 永続化 (localStorage/sessionStorage は使用しない) ---- */
+async function storageGet(key){
+  try{
+    if (window.storage && typeof window.storage.getItem === "function"){
+      const raw = await window.storage.getItem(key);
+      if (raw === null || raw === undefined) return null;
+      return JSON.parse(raw);
+    }
+  }catch(e){ console.warn("storage get failed", e); }
+  return null;
+}
+async function storageSet(key, value){
+  try{
+    if (window.storage && typeof window.storage.setItem === "function"){
+      await window.storage.setItem(key, JSON.stringify(value));
+    }
+  }catch(e){ console.warn("storage set failed", e); }
+}
+async function storageRemove(key){
+  try{
+    if (window.storage && typeof window.storage.removeItem === "function"){
+      await window.storage.removeItem(key);
+    }
+  }catch(e){ /* noop */ }
+}
+
+/* ---- Anthropic API 呼び出し (Claude.ai アーティファクト実行環境: キー不要 fetch) ---- */
+async function callClaude(system, messages, maxTokens){
+  let resp;
+  try{
+    resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: maxTokens || 4096,
+        system: system,
+        messages: messages
+      })
+    });
+  }catch(networkErr){
+    throw new Error("APIへの接続に失敗しました(ネットワークエラー)。このツールは claude.ai 上のアーティファクトとして開いた場合にのみ動作します。時間をおいて再試行してください。詳細: " + (networkErr && networkErr.message));
+  }
+  if (!resp.ok){
+    let msg = "APIエラー (HTTP " + resp.status + ")";
+    try{
+      const errJson = await resp.json();
+      if (errJson && errJson.error && errJson.error.message) msg += ": " + errJson.error.message;
+    }catch(e){}
+    throw new Error(msg);
+  }
+  const data = await resp.json();
+  const text = (data.content || []).filter(b=>b.type==="text").map(b=>b.text).join("\n");
+  if (!text) throw new Error("APIから空の応答が返されました。再試行してください。");
+  return text;
+}
+
+function parseJsonLoose(text){
+  let t = (text || "").trim();
+  t = t.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/,"");
+  const first = t.indexOf("{");
+  const last = t.lastIndexOf("}");
+  if (first >= 0 && last > first) t = t.substring(first, last+1);
+  try{
+    return JSON.parse(t);
+  }catch(e){
+    throw new Error("APIの応答をJSONとして解析できませんでした。応答が長すぎて途中で切れた可能性があります。再試行してください。");
+  }
+}
+
+/* ============================== 画像処理 ============================== */
+
+function fileToImageObj(file){
+  return new Promise((resolve, reject)=>{
+    if (!file.type || file.type.indexOf("image/") !== 0){ resolve(null); return; }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
+      if (!m){ reject(new Error("画像の読み込みに失敗しました")); return; }
+      resolve({
+        id: uid(),
+        name: file.name || "画像",
+        mediaType: m[1],
+        base64: m[2],
+        dataUrl: dataUrl,
+        sizeBytes: file.size || 0
+      });
+    };
+    reader.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
+    reader.readAsDataURL(file);
+  });
+}
+
+/* ============================== 抽出フェーズ ============================== */
+
+const EXTRACTION_SCHEMA_EXAMPLE = {
+  stores: [
+    {
+      store_code: "string",
+      store_name: "string",
+      periods: [
+        {
+          label: "第57期",
+          sales_total: 0, sales_product: 0, sales_school: 0, sales_repair: 0, sales_other: 0,
+          cogs: 0, gross_profit: 0,
+          sga_personnel: 0, sga_rent: 0, sga_utilities: 0, sga_depreciation: 0, sga_promotion: 0, sga_other: 0, sga_total: 0,
+          operating_profit: 0,
+          school_students: null, floor_tsubo: null
+        }
+      ]
+    }
+  ],
+  unit: "千円 | 円 | 百万円",
+  confidence_notes: ["string"]
+};
+
+function buildExtractionSystemPrompt(){
+  return [
+    "あなたは日本の楽器小売企業「島村楽器」の経理データ抽出アシスタントです。",
+    "添付された画像は基幹システムの「店舗別損益計算書 3期対比」画面のスクリーンショットです。",
+    "画像から数値を正確に読み取り、以下のJSONスキーマに厳密に従って出力してください。",
+    "",
+    "# 出力ルール(厳守)",
+    "- 出力はJSONオブジェクト1個のみ。前置き・説明文・Markdownのコードフェンス(```)は一切付けないこと。",
+    "- 読み取れなかった項目、画像に存在しない項目は 0 で埋めず null にすること。推測や補完による0埋めは禁止。",
+    "- 科目名の表記ゆれ(例:「販売費及び一般管理費」「販管費」「経費計」→ sga_total、「売上総利益」「粗利」「粗利益」→ gross_profit)は下記スキーマのキーに正規化すること。",
+    "- 金額の単位(円/千円/百万円)を画像から判定し unit に記録すること。判定根拠が弱い場合は confidence_notes にその旨を明記すること。",
+    "- 内訳合計(例: sga_personnel+sga_rent+...等 と sga_total、sales_product+sales_school+sales_repair+sales_other と sales_total)が一致しない場合は、confidence_notes に店舗名・期・差異を記載すること。",
+    "- 複数店舗が1枚の画像に含まれる場合は stores 配列に複数要素を追加すること。同一店舗が複数画像にまたがる場合は1つの store にまとめ、periods を補完すること。",
+    "- period の label は画像表記そのまま(例:「第57期」「2024年3月期」等)を使うこと。",
+    "",
+    "# JSONスキーマ(値は型の例であり実データではない)",
+    JSON.stringify(EXTRACTION_SCHEMA_EXAMPLE, null, 2)
+  ].join("\n");
+}
+
+async function runExtraction(images){
+  const content = images.map(img => ({
+    type: "image",
+    source: { type: "base64", media_type: img.mediaType, data: img.base64 }
+  }));
+  content.push({
+    type: "text",
+    text: "以下は島村楽器の店舗別PL 3期対比画面のスクリーンショットです(合計 " + images.length + " 枚)。全店舗・全期のデータをスキーマ通りのJSONで抽出してください。"
+  });
+  const text = await callClaude(buildExtractionSystemPrompt(), [{ role: "user", content }], 8192);
+  const json = parseJsonLoose(text);
+  if (!json || !Array.isArray(json.stores)) throw new Error("抽出結果の形式が不正です(stores配列がありません)。再試行してください。");
+  return json;
+}
+
+/* ============================== 検証(検算) ============================== */
+
+function computeValidation(data){
+  const issues = []; // {storeIndex, periodIndex, field, message, severity}
+  let blocking = false;
+  const unit = data.unit || "千円";
+  const tol = tolFor(unit);
+
+  (data.stores || []).forEach((store, si) => {
+    if (!store.store_name || !String(store.store_name).trim()){
+      issues.push({ storeIndex: si, periodIndex: null, field: "store_name", message: "店舗名が未入力です", severity: "blocking" });
+      blocking = true;
+    }
+    (store.periods || []).forEach((p, pi) => {
+      REQUIRED_FIELDS.forEach(f => {
+        if (p[f] === null || p[f] === undefined || p[f] === ""){
+          issues.push({ storeIndex: si, periodIndex: pi, field: f, message: FIELD_LABELS[f] + "が未入力です", severity: "blocking" });
+          blocking = true;
+        }
+      });
+      if (isNum(p.sales_total) && isNum(p.cogs) && isNum(p.gross_profit)){
+        const diff = p.sales_total - p.cogs - p.gross_profit;
+        if (Math.abs(diff) > tol){
+          issues.push({ storeIndex: si, periodIndex: pi, field: "gross_profit", message: "売上高−売上原価≠売上総利益 (差 " + fmtSignedNum(diff) + unit + ")", severity: "blocking" });
+          blocking = true;
+        }
+      }
+      if (isNum(p.gross_profit) && isNum(p.sga_total) && isNum(p.operating_profit)){
+        const diff = p.gross_profit - p.sga_total - p.operating_profit;
+        if (Math.abs(diff) > tol){
+          issues.push({ storeIndex: si, periodIndex: pi, field: "operating_profit", message: "売上総利益−販管費≠営業利益 (差 " + fmtSignedNum(diff) + unit + ")", severity: "blocking" });
+          blocking = true;
+        }
+      }
+      // 非ブロッキング警告: 内訳合計との整合
+      const compFields = ["sales_product","sales_school","sales_repair","sales_other"];
+      if (isNum(p.sales_total) && compFields.some(f=>isNum(p[f]))){
+        const sum = compFields.reduce((a,f)=> a + (isNum(p[f]) ? p[f] : 0), 0);
+        const anyNull = compFields.some(f=> p[f] === null || p[f] === undefined);
+        if (!anyNull && Math.abs(sum - p.sales_total) > tol){
+          issues.push({ storeIndex: si, periodIndex: pi, field: "sales_total", message: "売上構成の内訳合計が売上高合計と一致しません (内訳計 " + fmtNum(sum) + " / 合計 " + fmtNum(p.sales_total) + ")", severity: "warning" });
+        }
+      }
+      const sgaFields = ["sga_personnel","sga_rent","sga_utilities","sga_depreciation","sga_promotion","sga_other"];
+      if (isNum(p.sga_total) && sgaFields.some(f=>isNum(p[f]))){
+        const sum = sgaFields.reduce((a,f)=> a + (isNum(p[f]) ? p[f] : 0), 0);
+        const anyNull = sgaFields.some(f=> p[f] === null || p[f] === undefined);
+        if (!anyNull && Math.abs(sum - p.sga_total) > tol){
+          issues.push({ storeIndex: si, periodIndex: pi, field: "sga_total", message: "販管費内訳の合計が販管費計と一致しません (内訳計 " + fmtNum(sum) + " / 合計 " + fmtNum(p.sga_total) + ")", severity: "warning" });
+        }
+      }
+    });
+  });
+
+  if (!data.stores || data.stores.length === 0){ blocking = true; }
+
+  return { valid: !blocking, issues };
+}
+
+function issueKey(si, pi, field){ return si + "|" + pi + "|" + field; }
+
+/* ============================== 分析指標 ============================== */
+
+function computeStoreMetrics(store, unit){
+  const periods = sortPeriods(store.periods || []);
+  const n = periods.length;
+
+  const perPeriod = periods.map(p => {
+    const grossMarginRate = safeDiv(p.gross_profit, p.sales_total);
+    const personnelRatio = safeDiv(p.sga_personnel, p.sales_total);
+    const rentRatio = safeDiv(p.sga_rent, p.sales_total);
+    const sgaRatio = safeDiv(p.sga_total, p.sales_total);
+    const laborShare = safeDiv(p.sga_personnel, p.gross_profit);
+    const opMargin = safeDiv(p.operating_profit, p.sales_total);
+    const composition = {
+      product: safeDiv(p.sales_product, p.sales_total),
+      school: safeDiv(p.sales_school, p.sales_total),
+      repair: safeDiv(p.sales_repair, p.sales_total),
+      other: safeDiv(p.sales_other, p.sales_total)
+    };
+    const schoolUnitPrice = (isNum(p.sales_school) && isNum(p.school_students) && p.school_students > 0)
+      ? p.sales_school / p.school_students : null;
+    const floorEfficiency = (isNum(p.sales_total) && isNum(p.floor_tsubo) && p.floor_tsubo > 0)
+      ? p.sales_total / p.floor_tsubo : null;
+
+    let breakeven = null, breakevenGap = null, marginOfSafetyRate = null;
+    if (isNum(p.sales_total) && p.sales_total > 0 && isNum(p.cogs) && isNum(p.sga_total)){
+      const vcRatio = p.cogs / p.sales_total;
+      if (vcRatio < 1){
+        breakeven = p.sga_total / (1 - vcRatio);
+        breakevenGap = p.sales_total - breakeven;
+        marginOfSafetyRate = breakevenGap / p.sales_total;
+      }
+    }
+
+    return {
+      label: p.label, raw: p,
+      grossMarginRate, personnelRatio, rentRatio, sgaRatio, laborShare, opMargin,
+      composition, schoolUnitPrice, floorEfficiency, breakeven, breakevenGap, marginOfSafetyRate
+    };
+  });
+
+  const yoy = [];
+  for (let i=1;i<n;i++){
+    const prev = periods[i-1], curr = periods[i];
+    const salesDelta = (isNum(curr.sales_total) && isNum(prev.sales_total)) ? curr.sales_total - prev.sales_total : null;
+    const salesDeltaRate = safeDiv(salesDelta, prev.sales_total);
+    const opDelta = (isNum(curr.operating_profit) && isNum(prev.operating_profit)) ? curr.operating_profit - prev.operating_profit : null;
+    const opDeltaRate = safeDiv(opDelta, Math.abs(prev.operating_profit || 0) || null);
+    const grossDelta = (isNum(curr.gross_profit) && isNum(prev.gross_profit)) ? curr.gross_profit - prev.gross_profit : null;
+    yoy.push({ from: prev.label, to: curr.label, salesDelta, salesDeltaRate, opDelta, opDeltaRate, grossDelta });
+  }
+
+  function cagr(getVal){
+    if (n < 2) return null;
+    const first = getVal(periods[0]), last = getVal(periods[n-1]);
+    if (!isNum(first) || !isNum(last) || first <= 0 || last <= 0) return null;
+    return Math.pow(last/first, 1/(n-1)) - 1;
+  }
+  const cagrSales = cagr(p=>p.sales_total);
+  const cagrGross = cagr(p=>p.gross_profit);
+  const cagrOp = cagr(p=>p.operating_profit);
+
+  // 構成比シフト(初期→最終)
+  const compositionShift = {};
+  if (n >= 2){
+    ["product","school","repair","other"].forEach(k=>{
+      const a = perPeriod[0].composition[k], b = perPeriod[n-1].composition[k];
+      compositionShift[k] = (isNum(a) && isNum(b)) ? (b - a) : null;
+    });
+  }
+
+  // 要因分解(直近隣接期ペア全て)
+  const waterfalls = [];
+  for (let i=1;i<n;i++){
+    const prev = periods[i-1], curr = periods[i];
+    if (!isNum(prev.sales_total) || prev.sales_total <= 0 || !isNum(curr.sales_total) ||
+        !isNum(prev.gross_profit) || !isNum(curr.gross_profit) ||
+        !isNum(prev.operating_profit) || !isNum(curr.operating_profit) ||
+        !isNum(prev.sga_personnel) || !isNum(curr.sga_personnel) ||
+        !isNum(prev.sga_rent) || !isNum(curr.sga_rent)){
+      waterfalls.push(null);
+      continue;
+    }
+    const prevGM = prev.gross_profit / prev.sales_total;
+    const currGM = curr.sales_total > 0 ? curr.gross_profit / curr.sales_total : prevGM;
+    const volumeEffect = (curr.sales_total - prev.sales_total) * prevGM;
+    const marginRateEffect = curr.sales_total * (currGM - prevGM);
+    const personnelEffect = -(curr.sga_personnel - prev.sga_personnel);
+    const rentEffect = -(curr.sga_rent - prev.sga_rent);
+    const totalDelta = curr.operating_profit - prev.operating_profit;
+    const otherEffect = totalDelta - (volumeEffect + marginRateEffect + personnelEffect + rentEffect);
+    waterfalls.push({
+      fromLabel: prev.label, toLabel: curr.label,
+      prevOp: prev.operating_profit, currOp: curr.operating_profit,
+      volumeEffect, marginRateEffect, personnelEffect, rentEffect, otherEffect
+    });
+  }
+
+  return {
+    store_code: store.store_code, store_name: store.store_name,
+    periods: perPeriod, n, yoy, cagrSales, cagrGross, cagrOp, compositionShift, waterfalls,
+    latest: perPeriod[n-1] || null,
+    prevOfLatest: perPeriod[n-2] || null
+  };
+}
+
+function computeCompanyMetrics(storesMetrics){
+  // 期ラベルを揃える(最新期=各店の最終periodとして扱う。ラベル別中央値は「最新期」「その1つ前」で算出)
+  const latestGM = storesMetrics.map(m => m.latest && m.latest.grossMarginRate).filter(isNum);
+  const latestPersonnel = storesMetrics.map(m => m.latest && m.latest.personnelRatio).filter(isNum);
+  const latestRent = storesMetrics.map(m => m.latest && m.latest.rentRatio).filter(isNum);
+  const latestOpMargin = storesMetrics.map(m => m.latest && m.latest.opMargin).filter(isNum);
+  const latestLaborShare = storesMetrics.map(m => m.latest && m.latest.laborShare).filter(isNum);
+  const latestSalesGrowth = storesMetrics.map(m => {
+    const yoyLast = m.yoy[m.yoy.length-1];
+    return yoyLast ? yoyLast.salesDeltaRate : null;
+  }).filter(isNum);
+
+  return {
+    medianGrossMarginRate: median(latestGM),
+    medianPersonnelRatio: median(latestPersonnel),
+    medianRentRatio: median(latestRent),
+    medianOpMargin: median(latestOpMargin),
+    medianLaborShare: median(latestLaborShare),
+    medianSalesGrowth: median(latestSalesGrowth)
+  };
+}
+
+/* ============================== CSV / Markdown 出力 ============================== */
+
+function buildCsv(data){
+  const rows = [["店舗コード","店舗名","期","単位", ...FIELD_ORDER.map(f=>FIELD_LABELS[f])]];
+  (data.stores||[]).forEach(store=>{
+    (store.periods||[]).forEach(p=>{
+      rows.push([
+        store.store_code||"", store.store_name||"", p.label||"", data.unit||"",
+        ...FIELD_ORDER.map(f => (p[f] === null || p[f] === undefined) ? "" : p[f])
+      ]);
+    });
+  });
+  const csv = rows.map(r => r.map(cell=>{
+    const s = String(cell);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  }).join(",")).join("\r\n");
+  return "﻿" + csv;
+}
+
+function buildMarkdownReport(data, storesMetrics, recommendations, companyMedians){
+  const unit = data.unit || "";
+  const lines = [];
+  lines.push("# 店舗別PL 3期対比分析");
+  lines.push("");
+  lines.push("生成日: " + new Date().toLocaleDateString("ja-JP"));
+  lines.push("単位: " + unit);
+  lines.push("");
+
+  if (recommendations && recommendations.companySummary){
+    const cs = recommendations.companySummary;
+    lines.push("## 全社サマリ");
+    lines.push("");
+    lines.push("### 要注意店舗(赤字額順)");
+    (cs.watchListByLoss||[]).forEach((r,i)=> lines.push((i+1)+". " + r.store_name + " : " + fmtNum(r.amount) + unit));
+    lines.push("");
+    lines.push("### 要注意店舗(営業利益率悪化幅順)");
+    (cs.watchListByMarginDecline||[]).forEach((r,i)=> lines.push((i+1)+". " + r.store_name + " : " + fmtPP(r.deltaPp/100) ));
+    lines.push("");
+    lines.push("### 全社共通論点");
+    (cs.commonIssues||[]).forEach(t=> lines.push("- " + t));
+    lines.push("");
+  }
+
+  lines.push("## 店舗別詳細");
+  storesMetrics.forEach(m=>{
+    lines.push("");
+    lines.push("### " + m.store_name + "(" + (m.store_code||"—") + ")");
+    lines.push("");
+    lines.push("| 期 | 売上高 | 粗利率 | 営業利益 | 営業利益率 |");
+    lines.push("|---|---|---|---|---|");
+    m.periods.forEach(p=>{
+      lines.push("| " + p.label + " | " + fmtNum(p.raw.sales_total) + unit + " | " + fmtPct(p.grossMarginRate) + " | " + fmtNum(p.raw.operating_profit) + unit + " | " + fmtPct(p.opMargin) + " |");
+    });
+    lines.push("");
+    lines.push("3期CAGR(売上): " + fmtPct(m.cagrSales));
+
+    const rec = recommendations && recommendations.byStoreCode && recommendations.byStoreCode[m.store_code];
+    if (rec){
+      lines.push("");
+      lines.push("**傾向**: " + (TREND_LABELS[rec.trend_category] || rec.trend_category));
+      lines.push("");
+      lines.push("**現状**");
+      lines.push("");
+      lines.push(rec.current_state || "");
+      lines.push("");
+      lines.push("**対策**");
+      lines.push("");
+      (rec.actions||[]).forEach((a,i)=>{
+        lines.push((i+1)+". " + a.content + " (想定インパクト: " + (isNum(a.impact_yen) ? fmtNum(a.impact_yen)+unit : "データなし") + " / 優先度: " + a.priority + " / 実行主体: " + a.owner + " / 着手目安: " + a.timeline + ")");
+      });
+    }
+  });
+  return lines.join("\n");
+}
+
+/* ============================== 提言フェーズ(LLM呼び出し) ============================== */
+
+const REC_SCHEMA_EXAMPLE = {
+  stores: [
+    {
+      store_code: "string",
+      current_state: "string(3〜4文、数値を引用)",
+      trend_category: "growth|plateau|structural_deficit|one_time",
+      trend_reason: "string",
+      actions: [
+        { content: "string", impact_yen: 0, impact_note: "string", priority: "高|中|低",
+          owner: "店舗|エリアマネージャー|本部商品部|本部管理部", timeline: "30日以内|四半期内|次期予算" }
+      ]
+    }
+  ]
+};
+
+function buildRecSystemPrompt(){
+  return [
+    "あなたは島村楽器の経営企画担当として、エリアマネージャー・店長向けの店舗別PLレビューコメントを作成するアシスタントです。",
+    "入力として、各店舗のJavaScript側で計算済みの指標(数値)が渡されます。あなたはこの数値をもとに日本語の分析コメントと打ち手を作成してください。",
+    "数値の再計算や、与えられていない数値の創作は禁止です。与えられた数値のみを引用すること。",
+    "",
+    "# 出力ルール",
+    "- 出力はJSONオブジェクト1個のみ。前置き・コードフェンスなし。",
+    "- 各店舗について current_state(3〜4文、必ず具体的な数値を引用), trend_category(growth|plateau|structural_deficit|one_time のいずれか), trend_reason(判定理由1〜2文), actions(3〜5件の配列)を出力する。",
+    "- trend_category の判定基準: growth=売上・利益とも伸長。plateau=売上概ね横ばいだが利益は維持。structural_deficit=3期連続で利益率が低下、または直近赤字。one_time=直近期のみ悪化しそれ以前は概ね良好(改装・近隣競合出店等の単年要因の可能性)。",
+    "- actions の各要素は content, impact_yen(円ベースの概算数値。不明な場合はnull), impact_note(概算根拠の簡潔な説明), priority(高|中|低), owner(店舗|エリアマネージャー|本部商品部|本部管理部), timeline(30日以内|四半期内|次期予算) を必ず含める。",
+    "- 対策は楽器小売・音楽教室運営の実務に即した具体策に限定する。一般論(『コスト削減を検討する』等)は禁止。良い例:",
+    "  ・値引率と仕入条件の見直し(粗利率が中央値を下回る場合)",
+    "  ・音楽教室の生徒単価改定と在籍数の関係整理",
+    "  ・修理・リペア売上の構成比引き上げ(粗利率が高い収益源のため)",
+    "  ・シフト最適化による人件費率の是正、労働分配率の目標設定",
+    "  ・賃料再交渉、減床、レイアウト変更による坪効率改善",
+    "  ・撤退・移転の検討基準の提示(3期連続赤字かつ損益分岐点との乖離が大きい場合)",
+    "",
+    "# JSONスキーマ(値は型の例)",
+    JSON.stringify(REC_SCHEMA_EXAMPLE, null, 2)
+  ].join("\n");
+}
+
+function metricsToPayload(m, unit, companyMedians){
+  return {
+    store_code: m.store_code, store_name: m.store_name, unit: unit,
+    periods: m.periods.map(p=>({
+      label: p.label,
+      sales_total: p.raw.sales_total, gross_profit: p.raw.gross_profit, operating_profit: p.raw.operating_profit,
+      gross_margin_rate: p.grossMarginRate, personnel_ratio: p.personnelRatio, rent_ratio: p.rentRatio,
+      sga_ratio: p.sgaRatio, labor_share: p.laborShare, op_margin: p.opMargin,
+      composition: p.composition, school_unit_price: p.schoolUnitPrice, floor_efficiency: p.floorEfficiency,
+      breakeven_sales: p.breakeven, breakeven_gap: p.breakevenGap, margin_of_safety_rate: p.marginOfSafetyRate
+    })),
+    yoy: m.yoy, cagr_sales: m.cagrSales, cagr_gross_profit: m.cagrGross, cagr_operating_profit: m.cagrOp,
+    composition_shift_pt: m.compositionShift,
+    vs_company_median_latest: m.latest ? {
+      gross_margin_rate_diff: isNum(m.latest.grossMarginRate) && isNum(companyMedians.medianGrossMarginRate) ? m.latest.grossMarginRate - companyMedians.medianGrossMarginRate : null,
+      personnel_ratio_diff: isNum(m.latest.personnelRatio) && isNum(companyMedians.medianPersonnelRatio) ? m.latest.personnelRatio - companyMedians.medianPersonnelRatio : null,
+      op_margin_diff: isNum(m.latest.opMargin) && isNum(companyMedians.medianOpMargin) ? m.latest.opMargin - companyMedians.medianOpMargin : null,
+      labor_share_diff: isNum(m.latest.laborShare) && isNum(companyMedians.medianLaborShare) ? m.latest.laborShare - companyMedians.medianLaborShare : null
+    } : null,
+    company_median_latest: companyMedians
+  };
+}
+
+async function runRecommendationBatch(batchMetrics, unit, companyMedians){
+  const payload = batchMetrics.map(m => metricsToPayload(m, unit, companyMedians));
+  const text = await callClaude(
+    buildRecSystemPrompt(),
+    [{ role: "user", content: [{ type: "text", text: "以下は各店舗の計算済み指標です(JSON)。この数値のみに基づきコメントを作成してください。\n\n" + JSON.stringify(payload, null, 2) }] }],
+    4096
+  );
+  const json = parseJsonLoose(text);
+  if (!json || !Array.isArray(json.stores)) throw new Error("提言結果の形式が不正です。");
+  return json.stores;
+}
+
+async function runCommonIssues(allMetrics, unit, companyMedians, watchListByLoss, watchListByMarginDecline){
+  const compact = allMetrics.map(m => ({
+    store_name: m.store_name,
+    latest_op_margin: m.latest ? m.latest.opMargin : null,
+    latest_gross_margin: m.latest ? m.latest.grossMarginRate : null,
+    latest_personnel_ratio: m.latest ? m.latest.personnelRatio : null,
+    latest_labor_share: m.latest ? m.latest.laborShare : null,
+    sales_cagr: m.cagrSales
+  }));
+  const system = [
+    "あなたは島村楽器の経営企画担当です。全店舗の指標一覧(JSON、計算済み)をもとに、全社共通の論点を日本語で3〜6件、簡潔な文で挙げてください。",
+    "数値の再計算はせず、与えられた傾向のみをもとに記述すること。",
+    "出力はJSONオブジェクト1個のみ({ \"common_issues\": [\"...\"] })。前置き・コードフェンスなし。"
+  ].join("\n");
+  const userText = "全店舗指標:\n" + JSON.stringify(compact, null, 2) +
+    "\n\n要注意店舗(赤字額順): " + JSON.stringify(watchListByLoss) +
+    "\n要注意店舗(利益率悪化幅順): " + JSON.stringify(watchListByMarginDecline) +
+    "\n\n全社中央値: " + JSON.stringify(companyMedians);
+  const text = await callClaude(system, [{ role: "user", content: [{ type: "text", text: userText }] }], 1024);
+  const json = parseJsonLoose(text);
+  return Array.isArray(json.common_issues) ? json.common_issues : [];
+}
+
+function computeWatchLists(storesMetrics, unit){
+  const byLoss = storesMetrics
+    .filter(m => m.latest && isNum(m.latest.raw.operating_profit))
+    .slice()
+    .sort((a,b)=> a.latest.raw.operating_profit - b.latest.raw.operating_profit)
+    .slice(0,5)
+    .map(m => ({ store_name: m.store_name, amount: m.latest.raw.operating_profit }));
+
+  const byMarginDecline = storesMetrics
+    .filter(m => m.latest && m.prevOfLatest && isNum(m.latest.opMargin) && isNum(m.prevOfLatest.opMargin))
+    .map(m => ({ store_name: m.store_name, deltaPp: (m.latest.opMargin - m.prevOfLatest.opMargin) * 100 }))
+    .sort((a,b)=> a.deltaPp - b.deltaPp)
+    .slice(0,5);
+
+  return { watchListByLoss: byLoss, watchListByMarginDecline: byMarginDecline };
+}
+
+/* ============================== UI 部品 ============================== */
+
+function Stepper({ stage }) {
+  const steps = [
+    { key: "input", label: "① 画像入力" },
+    { key: "extracting", label: "② 抽出" },
+    { key: "verify", label: "③ 検証" },
+    { key: "workspace", label: "④⑤ 分析・提言" }
+  ];
+  const order = ["input","extracting","verify","workspace"];
+  const curIdx = order.indexOf(stage);
+  return (
+    <div className="stepper no-print">
+      {steps.map((s,i)=>(
+        <div key={s.key} className={"step " + (i===curIdx ? "active" : (i<curIdx ? "done" : ""))}>{s.label}</div>
+      ))}
+    </div>
+  );
+}
+
+function Skeleton({ height }) {
+  return <div className="skel" style={{ height: height || 18, width: "100%", marginBottom: 8 }} />;
+}
+
+/* ------------------------------ 入力ステージ ------------------------------ */
+
+function InputStage({ images, setImages, onStart, error, onRetryNote }) {
+  const [drag, setDrag] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const addFiles = useCallback(async (fileList) => {
+    const files = Array.from(fileList || []).filter(f => f.type && f.type.indexOf("image/") === 0);
+    if (!files.length) return;
+    const room = MAX_IMAGES - images.length;
+    if (room <= 0) return;
+    const use = files.slice(0, room);
+    const objs = [];
+    for (const f of use) {
+      try {
+        const o = await fileToImageObj(f);
+        if (o) objs.push(o);
+      } catch (e) { /* skip broken file */ }
+    }
+    setImages(prev => [...prev, ...objs].slice(0, MAX_IMAGES));
+  }, [images.length, setImages]);
+
+  useEffect(() => {
+    function onPaste(e) {
+      const items = e.clipboardData && e.clipboardData.items;
+      if (!items) return;
+      const files = [];
+      for (let i=0;i<items.length;i++){
+        if (items[i].kind === "file") {
+          const f = items[i].getAsFile();
+          if (f) files.push(f);
+        }
+      }
+      if (files.length) { e.preventDefault(); addFiles(files); }
+    }
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [addFiles]);
+
+  return (
+    <div>
+      <div className="panel">
+        <h2>店舗別PL画面のスクリーンショットを入力</h2>
+        <p className="muted">基幹システムの「店舗別損益 3期対比」画面をスクリーンショットし、この画面に <b>Ctrl+V(Mac: ⌘V)で直接貼り付け</b>てください。ドラッグ&ドロップ、ファイル選択にも対応しています。最大{MAX_IMAGES}枚まで。</p>
+
+        {error && <div className="banner error">{error}</div>}
+
+        <div
+          className={"dropzone" + (drag ? " drag" : "")}
+          onDragOver={(e)=>{ e.preventDefault(); setDrag(true); }}
+          onDragLeave={()=> setDrag(false)}
+          onDrop={(e)=>{ e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}
+        >
+          <div style={{fontSize:32, marginBottom:8}}>📋</div>
+          <div>ここに画像をドラッグ&ドロップ、または</div>
+          <div style={{marginTop:12}}>
+            <button onClick={()=> fileInputRef.current && fileInputRef.current.click()}>ファイルを選択</button>
+            <input ref={fileInputRef} type="file" accept="image/*" multiple style={{display:"none"}}
+              onChange={(e)=>{ addFiles(e.target.files); e.target.value = ""; }} />
+          </div>
+          <div className="faint" style={{marginTop:10}}>画面上でそのまま貼り付け(Ctrl+V / ⌘V)も可能です</div>
+        </div>
+
+        {images.length > 0 && (
+          <div className="thumbs">
+            {images.map(img => (
+              <div className="thumb" key={img.id}>
+                <img src={img.dataUrl} alt={img.name} />
+                <button className="del" onClick={()=> setImages(prev => prev.filter(i=>i.id!==img.id))} title="削除">✕</button>
+                <div className="name">{img.name}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="row" style={{marginTop:20, justifyContent:"space-between"}}>
+          <div className="faint">{images.length} / {MAX_IMAGES} 枚</div>
+          <button className="primary" disabled={images.length===0} onClick={onStart}>この画像で抽出を開始する →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ 抽出中ステージ ------------------------------ */
+
+function ExtractingStage({ error, onRetry, onBack }) {
+  return (
+    <div className="panel">
+      <h2>画像からデータを抽出しています…</h2>
+      {!error && (
+        <div>
+          <p className="muted">Claudeが画像を読み取り、店舗別PLデータをJSONに変換しています。店舗数・画像枚数により数十秒かかることがあります。</p>
+          <Skeleton height={22} />
+          <Skeleton height={22} />
+          <Skeleton height={120} />
+          <div className="progress-bar" style={{marginTop:10}}><div style={{width:"70%"}} /></div>
+        </div>
+      )}
+      {error && (
+        <div>
+          <div className="banner error">{error}</div>
+          <div className="row">
+            <button className="primary" onClick={onRetry}>再試行する</button>
+            <button onClick={onBack}>画像選択に戻る</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------ 検証ステージ ------------------------------ */
+
+function VerifyCell({ value, isNullable, blocking, warning, onChange, isText }) {
+  const cls = blocking ? "cell-null" : (warning ? "cell-warn" : "");
+  return (
+    <td className={cls}>
+      <input
+        type={isText ? "text" : "number"}
+        value={value === null || value === undefined ? "" : value}
+        placeholder={value===null ? "null" : ""}
+        onChange={(e)=>{
+          const v = e.target.value;
+          if (isText) { onChange(v); return; }
+          if (v === "") { onChange(null); return; }
+          const n = parseFloat(v);
+          onChange(isNaN(n) ? null : n);
+        }}
+      />
+    </td>
+  );
+}
+
+function StoreVerifyTable({ store, storeIndex, issues, onFieldChange, onMetaChange }) {
+  const storeIssues = issues.filter(iss => iss.storeIndex === storeIndex);
+  const periods = store.periods || [];
+
+  function fieldIssue(pi, field){
+    return storeIssues.find(iss => iss.periodIndex === pi && iss.field === field);
+  }
+  const rowIssues = {}; // periodIndex -> [messages]
+  storeIssues.forEach(iss=>{
+    if (iss.periodIndex === null) return;
+    if (!rowIssues[iss.periodIndex]) rowIssues[iss.periodIndex] = [];
+    rowIssues[iss.periodIndex].push(iss);
+  });
+
+  return (
+    <div className="store-block">
+      <div className="row" style={{marginBottom:10}}>
+        <div style={{width:160}}>
+          <label className="faint">店舗コード</label>
+          <input type="text" value={store.store_code||""} onChange={(e)=>onMetaChange("store_code", e.target.value)} />
+        </div>
+        <div style={{width:240}}>
+          <label className="faint">店舗名</label>
+          <input type="text" value={store.store_name||""} onChange={(e)=>onMetaChange("store_name", e.target.value)} />
+        </div>
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th className="label-col">科目</th>
+              {periods.map((p,pi)=>(
+                <th key={pi}>
+                  <input type="text" value={p.label||""} style={{textAlign:"center", fontWeight:600}}
+                    onChange={(e)=>onFieldChange(pi, "label", e.target.value)} />
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {FIELD_ORDER.map(f=>(
+              <tr key={f}>
+                <td className="label-col">{FIELD_LABELS[f]}{REQUIRED_FIELDS.indexOf(f)>=0 && <span style={{color:"var(--red)"}}> *</span>}</td>
+                {periods.map((p,pi)=>{
+                  const iss = fieldIssue(pi, f);
+                  return (
+                    <VerifyCell
+                      key={pi}
+                      value={p[f]}
+                      blocking={iss && iss.severity==="blocking"}
+                      warning={iss && iss.severity==="warning"}
+                      onChange={(v)=>onFieldChange(pi, f, v)}
+                    />
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {Object.keys(rowIssues).length > 0 && (
+        <div style={{marginTop:8}}>
+          {Object.keys(rowIssues).map(pi => rowIssues[pi].map((iss,ix)=>(
+            <div key={pi+"-"+ix} className={"issue-line " + iss.severity}>
+              {periods[pi] ? periods[pi].label : ""}: {iss.message}
+            </div>
+          )))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function VerifyStage({ data, setData, validation, onProceed, confidenceNotes, onResetToExtracted }) {
+  function updateStore(si, updater){
+    setData(prev=>{
+      const next = deepClone(prev);
+      updater(next.stores[si]);
+      return next;
+    });
+  }
+  const blockingCount = validation.issues.filter(i=>i.severity==="blocking").length;
+  const warningCount = validation.issues.filter(i=>i.severity==="warning").length;
+
+  return (
+    <div className="panel">
+      <h2>抽出結果の検証</h2>
+      <p className="muted">赤いセルは未入力(null)または検算エラーの必須項目です。黄色のセルは内訳合計の不一致(警告)です。値はその場で修正できます。すべての赤いエラーを解消すると分析に進めます。</p>
+
+      <div className="row" style={{marginBottom:14}}>
+        <span className="tag navy">単位:</span>
+        <select value={data.unit || "千円"} onChange={(e)=> setData(prev=>({...prev, unit:e.target.value}))}>
+          <option value="円">円</option>
+          <option value="千円">千円</option>
+          <option value="百万円">百万円</option>
+        </select>
+        <span className={"tag " + (blockingCount>0 ? "red" : "teal")}>必須エラー: {blockingCount}件</span>
+        <span className={"tag " + (warningCount>0 ? "amber" : "teal")}>警告: {warningCount}件</span>
+        <button className="ghost" onClick={onResetToExtracted}>抽出結果に戻す</button>
+      </div>
+
+      {confidenceNotes && confidenceNotes.length > 0 && (
+        <div className="banner warn">
+          <b>抽出時の確信度メモ:</b>
+          <ul style={{margin:"6px 0 0 18px"}}>
+            {confidenceNotes.map((n,i)=><li key={i}>{n}</li>)}
+          </ul>
+        </div>
+      )}
+
+      {(data.stores||[]).map((store, si)=>(
+        <StoreVerifyTable
+          key={si}
+          store={store}
+          storeIndex={si}
+          issues={validation.issues}
+          onFieldChange={(pi, field, value)=> updateStore(si, s=>{ s.periods[pi][field] = value; })}
+          onMetaChange={(field, value)=> updateStore(si, s=>{ s[field] = value; })}
+        />
+      ))}
+
+      <div className="row" style={{marginTop:20, justifyContent:"flex-end"}}>
+        <button className="primary" disabled={!validation.valid} onClick={onProceed}>
+          {validation.valid ? "分析フェーズへ進む →" : "検算エラーを解消してください"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ 分析・提言 ワークスペース ------------------------------ */
+
+function TrendChart({ m, unit }) {
+  const data = m.periods.map(p => ({
+    label: p.label,
+    sales: p.raw.sales_total,
+    gross: p.raw.gross_profit,
+    op: p.raw.operating_profit
+  }));
+  return (
+    <div className="chart-box">
+      <ResponsiveContainer width="100%" height="100%">
+        <ComposedChart data={data} margin={{ top: 10, right: 20, left: 10, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e2da" />
+          <XAxis dataKey="label" tick={{fontSize:12}} />
+          <YAxis tick={{fontSize:12}} tickFormatter={(v)=>fmtNum(v)} />
+          <Tooltip formatter={(v)=>fmtNum(v)+unit} />
+          <Legend />
+          <Bar dataKey="sales" name={"売上高("+unit+")"} fill={CHART_COLORS.sales} barSize={36} />
+          <Bar dataKey="gross" name={"粗利("+unit+")"} fill={CHART_COLORS.gross} barSize={36} />
+          <Line type="monotone" dataKey="op" name={"営業利益("+unit+")"} stroke={CHART_COLORS.op} strokeWidth={3} dot={{r:4}} />
+        </ComposedChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function QuadrantChart({ storesMetrics }) {
+  const data = storesMetrics.map(m=>{
+    const yoyLast = m.yoy[m.yoy.length-1];
+    const growth = yoyLast ? yoyLast.salesDeltaRate : null;
+    const margin = m.latest ? m.latest.opMargin : null;
+    const size = m.latest ? m.latest.raw.sales_total : null;
+    if (!isNum(growth) || !isNum(margin) || !isNum(size)) return null;
+    return { name: m.store_name, x: growth*100, y: margin*100, z: size };
+  }).filter(Boolean);
+
+  return (
+    <div className="chart-box">
+      <ResponsiveContainer width="100%" height="100%">
+        <ScatterChart margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e2da" />
+          <XAxis type="number" dataKey="x" name="売上成長率" unit="%" tick={{fontSize:12}} />
+          <YAxis type="number" dataKey="y" name="営業利益率" unit="%" tick={{fontSize:12}} />
+          <ZAxis type="number" dataKey="z" range={[60, 500]} name="売上規模" />
+          <ReferenceLine x={0} stroke="#9aa2ad" />
+          <ReferenceLine y={0} stroke="#9aa2ad" />
+          <Tooltip cursor={{ strokeDasharray: "3 3" }} formatter={(v,n)=> n==="売上成長率"||n==="営業利益率" ? v.toFixed(1)+"%" : fmtNum(v)}
+            labelFormatter={()=>""}
+            content={({active, payload})=>{
+              if (!active || !payload || !payload.length) return null;
+              const d = payload[0].payload;
+              return (
+                <div style={{background:"#fff", border:"1px solid #ddd", padding:"8px 10px", fontSize:13, borderRadius:6}}>
+                  <div style={{fontWeight:700}}>{d.name}</div>
+                  <div>売上成長率: {d.x.toFixed(1)}%</div>
+                  <div>営業利益率: {d.y.toFixed(1)}%</div>
+                </div>
+              );
+            }}
+          />
+          <Scatter data={data} fill={CHART_COLORS.op} />
+        </ScatterChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+function WaterfallChart({ wf, unit }) {
+  if (!wf) return <p className="faint">直近2期分のデータが不足しているため要因分解を表示できません(データなし)。</p>;
+  const items = [
+    { label: "前期営業利益", value: wf.prevOp, isTotal: true },
+    { label: "売上数量要因", value: wf.volumeEffect, isTotal: false },
+    { label: "粗利率要因", value: wf.marginRateEffect, isTotal: false },
+    { label: "人件費要因", value: wf.personnelEffect, isTotal: false },
+    { label: "家賃要因", value: wf.rentEffect, isTotal: false },
+    { label: "その他要因", value: wf.otherEffect, isTotal: false },
+    { label: "当期営業利益", value: wf.currOp, isTotal: true }
+  ];
+  let running = 0;
+  const data = items.map((it, i)=>{
+    if (it.isTotal){
+      const base = 0;
+      running = it.value;
+      return { label: it.label, base, value: it.value, display: it.value, isTotal: true };
+    } else {
+      const start = running;
+      const end = running + it.value;
+      const base = Math.min(start, end);
+      const value = Math.abs(it.value);
+      running = end;
+      return { label: it.label, base, value, display: it.value, isTotal: false };
+    }
+  });
+  return (
+    <div className="chart-box">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e5e2da" />
+          <XAxis dataKey="label" tick={{fontSize:11}} interval={0} />
+          <YAxis tick={{fontSize:12}} tickFormatter={(v)=>fmtNum(v)} />
+          <Tooltip formatter={(v,n,p)=> n==="value" ? fmtSignedNum(p.payload.display)+unit : null} labelFormatter={(l)=>l} />
+          <Bar dataKey="base" stackId="a" fill="transparent" />
+          <Bar dataKey="value" stackId="a">
+            {data.map((d,i)=>(
+              <Cell key={i} fill={d.isTotal ? CHART_COLORS.total : (d.display >= 0 ? CHART_COLORS.pos : CHART_COLORS.neg)} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="faint">{wf.fromLabel} → {wf.toLabel} の営業利益増減要因分解(単位: {unit})</div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, diff, diffLabel }) {
+  return (
+    <div className="metric-card">
+      <div className="l">{label}</div>
+      <div className="v">{value}</div>
+      {diff !== undefined && diff !== null && (
+        <div className={"d " + (diff >= 0 ? "pos" : "neg")}>{diffLabel}</div>
+      )}
+    </div>
+  );
+}
+
+function StoreDetail({ m, unit, companyMedians, rec, recStatus }) {
+  const [wfIdx, setWfIdx] = useState(Math.max(0, m.waterfalls.length - 1));
+  const latest = m.latest;
+  const yoyLast = m.yoy[m.yoy.length - 1];
+
+  return (
+    <div>
+      <div className="metric-grid">
+        <MetricCard label="直近売上高" value={latest ? fmtNum(latest.raw.sales_total)+unit : "—"} />
+        <MetricCard label="直近営業利益" value={latest ? fmtNum(latest.raw.operating_profit)+unit : "—"} />
+        <MetricCard label="粗利率" value={latest ? fmtPct(latest.grossMarginRate) : "—"}
+          diff={latest && isNum(latest.grossMarginRate) && isNum(companyMedians.medianGrossMarginRate) ? latest.grossMarginRate - companyMedians.medianGrossMarginRate : null}
+          diffLabel={latest && isNum(latest.grossMarginRate) && isNum(companyMedians.medianGrossMarginRate) ? "中央値比 " + fmtPP(latest.grossMarginRate - companyMedians.medianGrossMarginRate) : ""} />
+        <MetricCard label="人件費率" value={latest ? fmtPct(latest.personnelRatio) : "—"}
+          diff={latest && isNum(latest.personnelRatio) && isNum(companyMedians.medianPersonnelRatio) ? -(latest.personnelRatio - companyMedians.medianPersonnelRatio) : null}
+          diffLabel={latest && isNum(latest.personnelRatio) && isNum(companyMedians.medianPersonnelRatio) ? "中央値比 " + fmtPP(latest.personnelRatio - companyMedians.medianPersonnelRatio) : ""} />
+        <MetricCard label="労働分配率" value={latest ? fmtPct(latest.laborShare) : "—"} />
+        <MetricCard label="売上高成長率(直近期)" value={yoyLast ? fmtPct(yoyLast.salesDeltaRate) : "データなし"} />
+        <MetricCard label="売上高3期CAGR" value={isNum(m.cagrSales) ? fmtPct(m.cagrSales) : "データなし"} />
+        <MetricCard label="損益分岐点(直近期)" value={latest && isNum(latest.breakeven) ? fmtNum(latest.breakeven)+unit : "データなし"}
+          diffLabel={latest && isNum(latest.breakevenGap) ? "実売上との差 " + fmtSignedNum(latest.breakevenGap) + unit : ""} diff={latest && isNum(latest.breakevenGap) ? latest.breakevenGap : null} />
+        <MetricCard label="教室単価(直近期)" value={latest && isNum(latest.schoolUnitPrice) ? fmtNum(latest.schoolUnitPrice,1)+unit+"/人" : "データなし"} />
+        <MetricCard label="坪効率(直近期)" value={latest && isNum(latest.floorEfficiency) ? fmtNum(latest.floorEfficiency,1)+unit+"/坪" : "データなし"} />
+      </div>
+
+      <h3>3期推移</h3>
+      <TrendChart m={m} unit={unit} />
+
+      <div className="row" style={{justifyContent:"space-between", marginTop:20}}>
+        <h3 style={{marginBottom:0}}>営業利益 増減要因分解</h3>
+        {m.waterfalls.length > 1 && (
+          <select value={wfIdx} onChange={(e)=>setWfIdx(parseInt(e.target.value,10))}>
+            {m.waterfalls.map((wf,i)=> wf && <option key={i} value={i}>{wf.fromLabel} → {wf.toLabel}</option>)}
+          </select>
+        )}
+      </div>
+      <WaterfallChart wf={m.waterfalls[wfIdx]} unit={unit} />
+
+      <h3 style={{marginTop:20}}>売上構成比の3期シフト</h3>
+      {m.compositionShift && Object.values(m.compositionShift).some(isNum) ? (
+        <div className="row">
+          {["product","school","repair","other"].map(k=>{
+            const label = { product:"商品", school:"教室", repair:"修理", other:"その他" }[k];
+            const v = m.compositionShift[k];
+            return <span key={k} className={"tag " + (isNum(v) ? (v>=0?"teal":"red") : "navy")}>{label}: {isNum(v) ? fmtPP(v) : "データなし"}</span>;
+          })}
+        </div>
+      ) : <p className="faint">構成比データなし</p>}
+
+      <h3 style={{marginTop:24}}>提言</h3>
+      {recStatus === "idle" && <p className="faint">「提言を生成」ボタンを押すとこの店舗のコメントが表示されます。</p>}
+      {recStatus === "loading" && <div><Skeleton height={18}/><Skeleton height={18}/><Skeleton height={80}/></div>}
+      {recStatus === "error" && <div className="banner error">この店舗の提言生成に失敗しました。全体を再試行してください。</div>}
+      {rec && (
+        <div>
+          <span className={"trend-badge " + TREND_CLASS[rec.trend_category]}>{TREND_LABELS[rec.trend_category] || rec.trend_category}</span>
+          <p className="faint" style={{marginTop:6}}>{rec.trend_reason}</p>
+          <p style={{marginTop:10}}><b>現状: </b>{rec.current_state}</p>
+          <div style={{marginTop:10}}>
+            {(rec.actions||[]).map((a,i)=>(
+              <div className="action-item" key={i}>
+                <div>{i+1}. {a.content}</div>
+                <div className="meta">
+                  <span className="tag navy">想定インパクト: {isNum(a.impact_yen) ? fmtNum(a.impact_yen)+unit : "データなし"}</span>
+                  <span className={"tag " + (a.priority==="高"?"red":(a.priority==="中"?"amber":"teal"))}>優先度: {a.priority}</span>
+                  <span className="tag navy">実行主体: {a.owner}</span>
+                  <span className="tag navy">着手目安: {a.timeline}</span>
+                </div>
+                {a.impact_note && <div className="faint" style={{marginTop:6}}>{a.impact_note}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AllStoresTable({ storesMetrics, unit, companyMedians }) {
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th className="label-col">店舗</th>
+            <th>直近売上高</th>
+            <th>売上成長率</th>
+            <th>粗利率</th>
+            <th>人件費率</th>
+            <th>営業利益</th>
+            <th>営業利益率</th>
+            <th>中央値比(営業利益率)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {storesMetrics.map((m,i)=>{
+            const latest = m.latest;
+            const yoyLast = m.yoy[m.yoy.length-1];
+            const diff = latest && isNum(latest.opMargin) && isNum(companyMedians.medianOpMargin) ? latest.opMargin - companyMedians.medianOpMargin : null;
+            const isDeficit = latest && isNum(latest.raw.operating_profit) && latest.raw.operating_profit < 0;
+            return (
+              <tr key={i}>
+                <td className="label-col">{m.store_name}</td>
+                <td>{latest ? fmtNum(latest.raw.sales_total) : "—"}</td>
+                <td>{yoyLast ? fmtPct(yoyLast.salesDeltaRate) : "データなし"}</td>
+                <td>{latest ? fmtPct(latest.grossMarginRate) : "—"}</td>
+                <td>{latest ? fmtPct(latest.personnelRatio) : "—"}</td>
+                <td style={isDeficit ? {color:"var(--red)", fontWeight:700} : {}}>{latest ? fmtNum(latest.raw.operating_profit) : "—"}</td>
+                <td style={isDeficit ? {color:"var(--red)", fontWeight:700} : {}}>{latest ? fmtPct(latest.opMargin) : "—"}</td>
+                <td style={isNum(diff) ? {color: diff<0 ? "var(--red)" : "var(--teal)"} : {}}>{isNum(diff) ? fmtPP(diff) : "データなし"}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function CompanySummaryPanel({ companySummary, unit }) {
+  if (!companySummary) return null;
+  return (
+    <div>
+      <h3>要注意店舗ランキング(赤字額順)</h3>
+      {companySummary.watchListByLoss.length ? (
+        <ol>{companySummary.watchListByLoss.map((r,i)=><li key={i}>{r.store_name}: {fmtNum(r.amount)}{unit}</li>)}</ol>
+      ) : <p className="faint">データなし</p>}
+      <h3>要注意店舗ランキング(営業利益率悪化幅順)</h3>
+      {companySummary.watchListByMarginDecline.length ? (
+        <ol>{companySummary.watchListByMarginDecline.map((r,i)=><li key={i}>{r.store_name}: {fmtPP(r.deltaPp/100)}</li>)}</ol>
+      ) : <p className="faint">データなし(2期以上のデータが必要)</p>}
+      <h3>全社共通論点</h3>
+      {companySummary.commonIssues && companySummary.commonIssues.length ? (
+        <ul>{companySummary.commonIssues.map((t,i)=><li key={i}>{t}</li>)}</ul>
+      ) : <p className="faint">未生成、またはデータなし</p>}
+    </div>
+  );
+}
+
+function PrintSection({ storesMetrics, unit, recommendations, companySummary }) {
+  return (
+    <div className="print-only">
+      <div className="store-page">
+        <h1>店舗別PL 3期対比分析 全社サマリ</h1>
+        <p>生成日: {new Date().toLocaleDateString("ja-JP")} / 単位: {unit}</p>
+        <CompanySummaryPanel companySummary={companySummary} unit={unit} />
+      </div>
+      {storesMetrics.map((m,i)=>{
+        const rec = recommendations && recommendations.byStoreCode ? recommendations.byStoreCode[m.store_code] : null;
+        return (
+          <div className="store-page" key={i}>
+            <h1>{m.store_name}({m.store_code||"—"})</h1>
+            <table style={{marginBottom:16}}>
+              <thead><tr><th className="label-col">期</th><th>売上高</th><th>粗利率</th><th>営業利益</th><th>営業利益率</th></tr></thead>
+              <tbody>
+                {m.periods.map((p,pi)=>(
+                  <tr key={pi}>
+                    <td className="label-col">{p.label}</td>
+                    <td>{fmtNum(p.raw.sales_total)}{unit}</td>
+                    <td>{fmtPct(p.grossMarginRate)}</td>
+                    <td>{fmtNum(p.raw.operating_profit)}{unit}</td>
+                    <td>{fmtPct(p.opMargin)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {rec ? (
+              <div>
+                <p><b>傾向: </b>{TREND_LABELS[rec.trend_category] || rec.trend_category}</p>
+                <p><b>現状: </b>{rec.current_state}</p>
+                <p><b>対策:</b></p>
+                <ol>
+                  {(rec.actions||[]).map((a,ai)=>(
+                    <li key={ai}>{a.content}(想定インパクト: {isNum(a.impact_yen)?fmtNum(a.impact_yen)+unit:"データなし"} / 優先度: {a.priority} / 実行主体: {a.owner} / 着手目安: {a.timeline})</li>
+                  ))}
+                </ol>
+              </div>
+            ) : <p className="faint">提言は未生成です。</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function WorkspaceStage({ data, storesMetrics, companyMedians, recommendations, recPhase, onGenerateRecommendations, recError, onCopyMarkdown, onDownloadCsv, copyStatus }) {
+  const [selected, setSelected] = useState(0);
+  const unit = data.unit || "";
+  const m = storesMetrics[selected];
+
+  return (
+    <div>
+      <div className="panel no-print">
+        <div className="row" style={{justifyContent:"space-between"}}>
+          <h2 style={{marginBottom:0}}>分析ダッシュボード</h2>
+          <div className="row">
+            <button onClick={onDownloadCsv}>CSVダウンロード</button>
+            <button onClick={onCopyMarkdown}>Markdownをコピー</button>
+            <button onClick={()=>window.print()}>印刷 / PDF出力</button>
+          </div>
+        </div>
+        {copyStatus && <div className="faint">{copyStatus}</div>}
+
+        <h3 style={{marginTop:20}}>全店サマリ(直近期)</h3>
+        <AllStoresTable storesMetrics={storesMetrics} unit={unit} companyMedians={companyMedians} />
+
+        <h3 style={{marginTop:24}}>成長率 × 営業利益率(4象限)</h3>
+        <p className="faint">バブル径 = 売上規模。横軸: 直近期の売上成長率、縦軸: 直近期の営業利益率。</p>
+        <QuadrantChart storesMetrics={storesMetrics} />
+      </div>
+
+      <div className="panel no-print">
+        <div className="row" style={{justifyContent:"space-between"}}>
+          <h2 style={{marginBottom:0}}>店舗別詳細</h2>
+          <select value={selected} onChange={(e)=>setSelected(parseInt(e.target.value,10))}>
+            {storesMetrics.map((sm,i)=><option key={i} value={i}>{sm.store_name}</option>)}
+          </select>
+        </div>
+        {m && (
+          <StoreDetail
+            m={m} unit={unit} companyMedians={companyMedians}
+            rec={recommendations && recommendations.byStoreCode ? recommendations.byStoreCode[m.store_code] : null}
+            recStatus={
+              recommendations && recommendations.byStoreCode && recommendations.byStoreCode[m.store_code] ? "done" :
+              (recPhase === "loading" ? "loading" : (recPhase === "error" ? "error" : "idle"))
+            }
+          />
+        )}
+      </div>
+
+      <div className="panel no-print">
+        <div className="row" style={{justifyContent:"space-between"}}>
+          <h2 style={{marginBottom:0}}>提言フェーズ</h2>
+          <button className="primary" disabled={recPhase==="loading"} onClick={onGenerateRecommendations}>
+            {recPhase==="loading" ? "生成中…" : (recommendations ? "再生成する" : "提言を生成する")}
+          </button>
+        </div>
+        {recPhase==="loading" && (
+          <div>
+            <p className="muted">計算済み指標のみをAPIに送信し、店舗ごとの現状・傾向・対策を生成しています(画像は再送していません)。</p>
+            <div className="progress-bar"><div style={{width: (recommendations && recommendations.progress ? recommendations.progress : 10) + "%"}} /></div>
+          </div>
+        )}
+        {recError && (
+          <div className="banner error">
+            {recError}
+            <div style={{marginTop:8}}><button onClick={onGenerateRecommendations}>再試行する</button></div>
+          </div>
+        )}
+        {recommendations && recommendations.companySummary && (
+          <div style={{marginTop:16}}>
+            <CompanySummaryPanel companySummary={recommendations.companySummary} unit={unit} />
+          </div>
+        )}
+      </div>
+
+      <PrintSection storesMetrics={storesMetrics} unit={unit} recommendations={recommendations} companySummary={recommendations ? recommendations.companySummary : null} />
+    </div>
+  );
+}
+
+/* ============================== ルートアプリ ============================== */
+
+function App(){
+  const [stage, setStage] = useState("input");
+  const [images, setImages] = useState([]);
+  const [extractError, setExtractError] = useState(null);
+  const [rawExtraction, setRawExtraction] = useState(null);
+  const [data, setData] = useState(null); // editable data
+  const [restoredBanner, setRestoredBanner] = useState(false);
+
+  const [recommendations, setRecommendations] = useState(null);
+  const [recPhase, setRecPhase] = useState("idle"); // idle | loading | error | done
+  const [recError, setRecError] = useState(null);
+  const [copyStatus, setCopyStatus] = useState("");
+
+  // 復元
+  useEffect(() => {
+    (async () => {
+      const saved = await storageGet(STORAGE_KEY);
+      if (saved && saved.data) {
+        setData(saved.data);
+        setRawExtraction(saved.rawExtraction || saved.data);
+        setRecommendations(saved.recommendations || null);
+        setStage(saved.stage === "workspace" ? "workspace" : "verify");
+        setRestoredBanner(true);
+      }
+    })();
+  }, []);
+
+  // 永続化
+  useEffect(() => {
+    if (!data) return;
+    storageSet(STORAGE_KEY, { stage: stage === "workspace" ? "workspace" : "verify", data, rawExtraction, recommendations });
+  }, [data, recommendations, stage, rawExtraction]);
+
+  const validation = useMemo(() => data ? computeValidation(data) : { valid:false, issues:[] }, [data]);
+
+  const storesMetrics = useMemo(() => {
+    if (!data) return [];
+    return (data.stores || []).map(s => computeStoreMetrics(s, data.unit));
+  }, [data]);
+
+  const companyMedians = useMemo(() => computeCompanyMetrics(storesMetrics), [storesMetrics]);
+
+  async function startExtraction() {
+    setExtractError(null);
+    setStage("extracting");
+    try {
+      const json = await runExtraction(images);
+      setRawExtraction(json);
+      setData(deepClone(json));
+      setStage("verify");
+    } catch (e) {
+      setExtractError(e.message || String(e));
+    }
+  }
+
+  async function generateRecommendations() {
+    setRecError(null);
+    setRecPhase("loading");
+    try {
+      const batches = chunk(storesMetrics, 3);
+      const byStoreCode = {};
+      let done = 0;
+      for (const batch of batches) {
+        const results = await runRecommendationBatch(batch, data.unit, companyMedians);
+        results.forEach(r => { byStoreCode[r.store_code] = r; });
+        done += batch.length;
+        setRecommendations(prev => ({ ...(prev||{}), byStoreCode: {...byStoreCode}, progress: Math.round(10 + 70*done/storesMetrics.length) }));
+      }
+      const { watchListByLoss, watchListByMarginDecline } = computeWatchLists(storesMetrics, data.unit);
+      let commonIssues = [];
+      try {
+        commonIssues = await runCommonIssues(storesMetrics, data.unit, companyMedians, watchListByLoss, watchListByMarginDecline);
+      } catch (e) { /* 全社論点のみ失敗した場合は店舗別コメントは保持する */ }
+      setRecommendations({
+        byStoreCode,
+        companySummary: { watchListByLoss, watchListByMarginDecline, commonIssues },
+        progress: 100
+      });
+      setRecPhase("done");
+    } catch (e) {
+      setRecError(e.message || String(e));
+      setRecPhase("error");
+    }
+  }
+
+  function handleCopyMarkdown() {
+    const md = buildMarkdownReport(data, storesMetrics, recommendations, companyMedians);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(md).then(
+        () => { setCopyStatus("Markdownをクリップボードにコピーしました"); setTimeout(()=>setCopyStatus(""), 3000); },
+        () => setCopyStatus("コピーに失敗しました。ブラウザのクリップボード権限をご確認ください。")
+      );
+    } else {
+      setCopyStatus("このブラウザではクリップボードコピーに対応していません。");
+    }
+  }
+
+  function handleDownloadCsv() {
+    const csv = buildCsv(data);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = "店舗別PL_3期対比_" + dateStr + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function resetAll() {
+    setStage("input");
+    setImages([]);
+    setExtractError(null);
+    setRawExtraction(null);
+    setData(null);
+    setRecommendations(null);
+    setRecPhase("idle");
+    setRecError(null);
+    storageRemove(STORAGE_KEY);
+  }
+
+  return (
+    <div>
+      <div className="no-print">
+        <h1>店舗別PL 3期対比分析</h1>
+        <p className="muted" style={{marginBottom:20}}>島村楽器 統括部長向け — スクリーンショットから現状把握・傾向分析・打ち手までを一気通貫で出力します。</p>
+      </div>
+
+      <Stepper stage={stage} />
+
+      {restoredBanner && (
+        <div className="banner info no-print">
+          前回の作業内容を復元しました。
+          <button className="ghost" style={{marginLeft:10}} onClick={()=>{ setRestoredBanner(false); }}>閉じる</button>
+          <button className="ghost" onClick={resetAll}>破棄して最初からやり直す</button>
+        </div>
+      )}
+
+      {stage === "input" && (
+        <InputStage images={images} setImages={setImages} onStart={startExtraction} error={extractError} />
+      )}
+
+      {stage === "extracting" && (
+        <ExtractingStage error={extractError} onRetry={startExtraction} onBack={()=>{ setExtractError(null); setStage("input"); }} />
+      )}
+
+      {stage === "verify" && data && (
+        <VerifyStage
+          data={data}
+          setData={setData}
+          validation={validation}
+          confidenceNotes={data.confidence_notes}
+          onProceed={()=> setStage("workspace")}
+          onResetToExtracted={()=> rawExtraction && setData(deepClone(rawExtraction))}
+        />
+      )}
+
+      {stage === "workspace" && data && (
+        <WorkspaceStage
+          data={data}
+          storesMetrics={storesMetrics}
+          companyMedians={companyMedians}
+          recommendations={recommendations}
+          recPhase={recPhase}
+          recError={recError}
+          onGenerateRecommendations={generateRecommendations}
+          onCopyMarkdown={handleCopyMarkdown}
+          onDownloadCsv={handleDownloadCsv}
+          copyStatus={copyStatus}
+        />
+      )}
+
+      {stage === "workspace" && (
+        <div className="no-print" style={{marginTop:10}}>
+          <button className="ghost" onClick={()=>setStage("verify")}>← 検証に戻る</button>
+          <button className="ghost danger" onClick={resetAll}>最初からやり直す</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+<script>
+  // babel-standalone の自動 <script type="text/babel"> スキャンはデフォルトで
+  // automatic JSX runtime(import "react/jsx-runtime" を注入)を使うため、
+  // ESM非対応のクラシックスクリプト環境では実行できない。
+  // そのため手動で classic runtime を指定してトランスパイルしてから実行する。
+  (function () {
+    try {
+      var src = document.getElementById("app-source").textContent;
+      var out = Babel.transform(src, {
+        presets: [["react", { runtime: "classic" }]],
+        filename: "app.jsx"
+      }).code;
+      (0, eval)(out);
+    } catch (e) {
+      var root = document.getElementById("root");
+      if (root) {
+        root.innerHTML = "<div style='padding:24px;color:#a8382a;font-family:system-ui;'>" +
+          "アプリの初期化に失敗しました。ページを再読み込みしてください。<br><pre style='white-space:pre-wrap;'>" +
+          String(e && e.message || e) + "</pre></div>";
+      }
+      console.error("app bootstrap failed", e);
+    }
+  })();
+</script>
+</body>
+</html>
