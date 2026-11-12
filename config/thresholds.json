@@ -1,0 +1,56 @@
+{
+  "_説明": "警告判定のしきい値。会社の実態に合わせて調整してください。pt はパーセントポイント。",
+  "fiscal_year_start_month": 4,
+  "company": {
+    "sales_budget_ratio_mid": 0.97,
+    "sales_budget_ratio_high": 0.93,
+    "sales_yoy_mid": 1.00,
+    "sales_yoy_high": 0.95,
+    "gross_margin_yoy_pt_mid": -1.0,
+    "gross_margin_yoy_pt_high": -2.0,
+    "sga_ratio_yoy_pt_mid": 1.0,
+    "sga_ratio_yoy_pt_high": 2.0,
+    "labor_ratio_yoy_pt_mid": 0.7,
+    "op_income_budget_gap_ratio_high": -0.20,
+    "inventory_days_yoy_increase_mid": 0.10,
+    "inventory_days_yoy_increase_high": 0.20,
+    "inventory_vs_sales_growth_gap_pt_high": 10.0,
+    "cash_months_of_sales_mid": 1.5,
+    "cash_months_of_sales_high": 1.0,
+    "equity_ratio_drop_pt_mid": 2.0,
+    "debt_yoy_increase_mid": 0.10,
+    "receivable_days_yoy_increase_mid": 0.15,
+    "advance_received_yoy_mid": 0.97
+  },
+  "store": {
+    "budget_ratio_mid": 0.95,
+    "budget_ratio_high": 0.90,
+    "existing_store_min_months": 13,
+    "consecutive_deficit_months_high": 3,
+    "consecutive_yoy_decline_months_mid": 3,
+    "labor_ratio_zscore": 2.0,
+    "inventory_days_zscore": 2.0,
+    "inventory_vs_sales_growth_gap_pt_mid": 15.0
+  },
+  "sales": {
+    "category_yoy_mid": 0.95,
+    "category_yoy_high": 0.90,
+    "category_margin_yoy_pt_mid": -1.5,
+    "consecutive_decline_months_mid": 3,
+    "min_category_share_for_alert": 0.03
+  },
+  "lesson": {
+    "members_yoy_mid": 0.98,
+    "members_yoy_high": 0.95,
+    "churn_rate_yoy_pt_mid": 0.5,
+    "churn_rate_yoy_pt_high": 1.0,
+    "store_churn_rate_high": 0.045,
+    "store_members_yoy_high": 0.93,
+    "new_yoy_mid": 0.90,
+    "trial_conversion_yoy_pt_mid": -5.0,
+    "course_members_yoy_mid": 0.95
+  },
+  "data_quality": {
+    "tolerance_ratio": 0.005
+  }
+}
