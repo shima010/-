@@ -4,3 +4,8 @@ __pycache__/
 .venv/
 venv/
 *.xlsx
+.pytest_cache/
+
+# 分析の入力データと出力(財務データをリポジトリに含めないため)
+data/
+output/
